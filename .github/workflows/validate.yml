@@ -1,0 +1,107 @@
+name: 'Validate Workflows'
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  validate:
+    name: 'Validate Workflow Syntax'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Check YAML syntax'
+        run: |
+          for file in .github/workflows/*.yml; do
+            echo "Checking $file..."
+            python -c "
+            import yaml
+            import sys
+            try:
+                with open('$file', 'r') as f:
+                    yaml.safe_load(f)
+                print('✅ $file is valid YAML')
+            except yaml.YAMLError as e:
+                print('❌ $file has YAML syntax error:', e)
+                sys.exit(1)
+            except Exception as e:
+                print('❌ Error reading $file:', e)
+                sys.exit(1)
+            "
+          done
+
+      - name: 'Check for deprecated actions'
+        run: |
+          echo "Checking for deprecated GitHub Actions..."
+          
+          # Check for deprecated actions
+          deprecated_actions=(
+            "actions/create-release@v1"
+            "actions/upload-release-asset@v1" 
+            "::set-output"
+            "::set-env"
+          )
+          
+          found_deprecated=false
+          
+          for action in "${deprecated_actions[@]}"; do
+            if grep -r "$action" .github/workflows/; then
+              echo "❌ Found deprecated action/syntax: $action"
+              found_deprecated=true
+            fi
+          done
+          
+          if [ "$found_deprecated" = true ]; then
+            echo "Please update deprecated actions/syntax"
+            exit 1
+          else
+            echo "✅ No deprecated actions found"
+          fi
+
+      - name: 'Validate Docker build args'
+        run: |
+          echo "Validating Docker build arguments consistency..."
+          
+          # Check that all Dockerfiles have corresponding ARG declarations
+          for image in ansible python terraform go; do
+            dockerfile="images/$image/Dockerfile"
+            if [ -f "$dockerfile" ]; then
+              echo "Checking $dockerfile..."
+              
+              # Basic validation that ARG variables are declared
+              case $image in
+                ansible|python)
+                  if ! grep -q "ARG PYTHON_VERSION" "$dockerfile"; then
+                    echo "❌ Missing PYTHON_VERSION ARG in $dockerfile"
+                    exit 1
+                  fi
+                  ;;
+                terraform)
+                  if ! grep -q "ARG TERRAFORM_VERSION" "$dockerfile"; then
+                    echo "❌ Missing TERRAFORM_VERSION ARG in $dockerfile"
+                    exit 1
+                  fi
+                  ;;
+                go)
+                  if ! grep -q "ARG GO_VERSION" "$dockerfile"; then
+                    echo "❌ Missing GO_VERSION ARG in $dockerfile"
+                    exit 1
+                  fi
+                  ;;
+              esac
+              
+              echo "✅ $dockerfile has required ARG declarations"
+            fi
+          done
+
+      - name: 'Summary'
+        run: |
+          echo "🎉 All workflow validations passed!"
+          echo "✅ YAML syntax is valid"
+          echo "✅ No deprecated actions found"
+          echo "✅ Docker build args are consistent"

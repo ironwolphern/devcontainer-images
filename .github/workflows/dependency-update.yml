@@ -104,8 +104,10 @@ jobs:
           with open('updates.json', 'w') as f:
               json.dump(updates, f)
           
-          # Set output
-          print(f"::set-output name=updates_available::true")
+          # Set output using environment file
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output_file:
+              output_file.write("updates_available=true\n")
           EOF
 
       - name: 'Upload updates info'

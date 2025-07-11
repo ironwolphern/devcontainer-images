@@ -180,12 +180,18 @@ jobs:
           echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
 
       - name: 'Create Release'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v6
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: DevContainer Images ${{ steps.version.outputs.tag }}
-          body_path: ${{ steps.release_notes.outputs.notes_file }}
-          draft: false
-          prerelease: false
+          script: |
+            const fs = require('fs');
+            const releaseNotes = fs.readFileSync('release_notes.md', 'utf8');
+            
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ steps.version.outputs.tag }}',
+              name: 'DevContainer Images ${{ steps.version.outputs.tag }}',
+              body: releaseNotes,
+              draft: false,
+              prerelease: false
+            });
