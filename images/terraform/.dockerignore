@@ -1,0 +1,14 @@
+.git
+.github
+*.md
+.terraform
+.terragrunt-cache
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+.terraform.lock.hcl
+crash.log
+terraform.log
+.DS_Store
+Thumbs.db

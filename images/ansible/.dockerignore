@@ -1,0 +1,12 @@
+.git
+.github
+*.md
+.ansible
+.molecule
+.cache
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.DS_Store
+Thumbs.db
