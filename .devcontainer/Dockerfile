@@ -27,12 +27,7 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
 RUN wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 \
     && chmod +x /usr/local/bin/hadolint
 
-# Set up workspace
-WORKDIR /workspace
-
-# Create non-root user
-RUN groupadd --gid 1000 vscode \
-    && useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode \
-    && usermod -aG docker vscode
+# Add vscode user to docker group (user already exists in base image)
+RUN usermod -aG docker vscode || true
 
 USER vscode

@@ -2,7 +2,7 @@
   "name": "DevContainer Images Development",
   "dockerComposeFile": "docker-compose.yml",
   "service": "dev",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/devcontainer-images",
   "shutdownAction": "stopCompose",
   
   "features": {
