@@ -6,12 +6,12 @@ FROM python:${PYTHON_VERSION}-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    g++ \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
+    build-essential=12.* \
+    gcc=4:13.* \
+    g++=4:13.* \
+    libffi-dev=3.* \
+    libssl-dev=3.* \
+    libpq-dev=16.* \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -26,10 +26,10 @@ FROM python:${PYTHON_VERSION}-slim AS production
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
-    ca-certificates \
-    libpq5 \
+    git=1:2.* \
+    curl=8.* \
+    ca-certificates=20240203 \
+    libpq5=16.* \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

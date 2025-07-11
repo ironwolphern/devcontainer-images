@@ -44,8 +44,7 @@
         "hashicorp.terraform",
         "github.vscode-github-actions",
         "github.copilot",
-        "ms-vscode.makefile-tools",
-        "streetsidesoftware.code-spell-checker"
+        "ms-vscode.makefile-tools"
       ]
     }
   },

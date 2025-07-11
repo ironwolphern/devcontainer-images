@@ -6,9 +6,9 @@ FROM alpine:${ALPINE_VERSION} AS downloader
 
 # Install download dependencies
 RUN apk add --no-cache \
-    curl \
-    unzip \
-    gnupg
+    curl=8.* \
+    unzip=6.* \
+    gnupg=2.*
 
 WORKDIR /tmp
 
@@ -38,14 +38,14 @@ FROM alpine:${ALPINE_VERSION} AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \
-    bash \
-    git \
-    curl \
-    ca-certificates \
-    openssh-client \
-    python3 \
-    py3-pip \
-    make \
+    bash=5.* \
+    git=2.* \
+    curl=8.* \
+    ca-certificates=20240705-r0 \
+    openssh-client=9.* \
+    python3=3.12.* \
+    py3-pip=24.* \
+    make=4.* \
     && ln -sf python3 /usr/bin/python
 
 # Create non-root user
@@ -58,9 +58,9 @@ COPY --from=downloader /tmp/tflint /usr/local/bin/tflint
 
 # Install Python-based tools
 RUN pip3 install --no-cache-dir \
-    checkov>=${CHECKOV_VERSION} \
-    terrascan>=1.19.0 \
-    pre-commit>=3.8.0
+    checkov==3.* \
+    terrascan==1.* \
+    pre-commit==3.*
 
 # Set environment variables
 ENV TF_IN_AUTOMATION=true

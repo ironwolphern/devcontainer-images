@@ -7,10 +7,10 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
-    git \
-    ca-certificates \
-    gcc \
-    musl-dev
+    git=2.* \
+    ca-certificates=20240705-r0 \
+    gcc=13.* \
+    musl-dev=1.*
 
 WORKDIR /tmp
 
@@ -30,11 +30,11 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \
-    git \
-    curl \
-    ca-certificates \
-    bash \
-    make \
+    git=2.* \
+    curl=8.* \
+    ca-certificates=20240705-r0 \
+    bash=5.* \
+    make=4.* \
     && update-ca-certificates
 
 # Create non-root user

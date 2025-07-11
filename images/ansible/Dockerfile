@@ -6,10 +6,10 @@ FROM python:${PYTHON_VERSION}-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    libffi-dev \
-    libssl-dev \
+    build-essential=12.* \
+    gcc=4:13.* \
+    libffi-dev=3.* \
+    libssl-dev=3.* \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -24,11 +24,11 @@ FROM python:${PYTHON_VERSION}-slim AS production
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssh-client \
-    sshpass \
-    git \
-    curl \
-    ca-certificates \
+    openssh-client=1:9.* \
+    sshpass=1.* \
+    git=1:2.* \
+    curl=8.* \
+    ca-certificates=20240203 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
