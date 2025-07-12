@@ -5,7 +5,7 @@ ARG GO_VERSION=1.23
 ARG ALPINE_VERSION=3.20
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
-# Install build dependencies
+# Install build dependencies and tools
 RUN apk add --no-cache \
     git=2.45.4-r0 \
     ca-certificates=20241121-r1 \

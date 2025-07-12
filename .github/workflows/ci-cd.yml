@@ -303,7 +303,7 @@ jobs:
           EOF
           
           # Test compose setup
-          docker-compose -f docker-compose.test.yml config
+          docker compose -f docker-compose.test.yml config
 
   notify:
     name: 'Notify Results'
