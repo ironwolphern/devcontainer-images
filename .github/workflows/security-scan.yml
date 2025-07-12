@@ -1,0 +1,280 @@
+name: 'Security Scan'
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - vulnerability
+          - secrets
+          - dockerfile
+          - dependencies
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  issues: write
+
+jobs:
+  dockerfile-security:
+    name: 'Dockerfile Security Scan'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dockerfile' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Run Hadolint'
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: 'images/*/Dockerfile'
+          recursive: true
+          format: sarif
+          output-file: hadolint-results.sarif
+          failure-threshold: error
+
+      - name: 'Upload Hadolint results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: hadolint-results.sarif
+
+  secrets-scan:
+    name: 'Secrets Scan'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'secrets' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Run TruffleHog'
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  vulnerability-scan:
+    name: 'Vulnerability Scan'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'vulnerability' || github.event_name == 'schedule'
+    strategy:
+      matrix:
+        image: [ansible, python, terraform, go]
+        include:
+          - image: ansible
+            build_args: |
+              PYTHON_VERSION=3.12
+          - image: python
+            build_args: |
+              PYTHON_VERSION=3.12
+          - image: terraform
+            build_args: |
+              ALPINE_VERSION=3.20
+              TERRAFORM_VERSION=1.12.2
+              TERRAGRUNT_VERSION=0.67.16
+              TFLINT_VERSION=0.53.0
+              CHECKOV_VERSION=3.2.255
+          - image: go
+            build_args: |
+              GO_VERSION=1.23
+              ALPINE_VERSION=3.20
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3
+
+      - name: 'Build image for scanning'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./images/${{ matrix.image }}
+          build-args: ${{ matrix.build_args }}
+          tags: local/devcontainer-${{ matrix.image }}:scan
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 'Run Trivy vulnerability scanner'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'local/devcontainer-${{ matrix.image }}:scan'
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.image }}.sarif'
+
+      - name: 'Upload Trivy scan results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+
+      - name: 'Run Grype vulnerability scanner'
+        uses: anchore/scan-action@v3
+        id: grype
+        with:
+          image: 'local/devcontainer-${{ matrix.image }}:scan'
+          fail-build: false
+          severity-cutoff: high
+
+      - name: 'Upload Grype scan results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+
+  dependency-scan:
+    name: 'Dependency Security Scan'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dependencies' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: 'Scan Python dependencies'
+        run: |
+          # Install safety for Python dependency scanning
+          pip install safety
+          
+          # Scan each Python requirements file
+          for req_file in images/*/requirements.txt; do
+            if [ -f "$req_file" ]; then
+              echo "Scanning $req_file"
+              safety check -r "$req_file" --json > "safety-results-$(basename $(dirname $req_file)).json" || true
+            fi
+          done
+
+      - name: 'Set up Go'
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
+      - name: 'Scan Go dependencies'
+        run: |
+          # Install govulncheck
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          
+          # Create a temporary go.mod for scanning Go tools
+          mkdir -p temp-go-scan
+          cd temp-go-scan
+          go mod init temp-scan
+          
+          # Add the tools we install in the Go image
+          go get golang.org/x/tools/gopls@latest
+          go get github.com/go-delve/delve/cmd/dlv@latest
+          go get honnef.co/go/tools/cmd/staticcheck@latest
+          go get github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go get github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          
+          # Run vulnerability check
+          govulncheck ./... || true
+          
+          cd ..
+          rm -rf temp-go-scan
+
+      - name: 'Upload dependency scan results'
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-scan-results
+          path: |
+            safety-results-*.json
+            govulncheck-results.json
+
+  security-report:
+    name: 'Generate Security Report'
+    runs-on: ubuntu-latest
+    needs: [dockerfile-security, secrets-scan, vulnerability-scan, dependency-scan]
+    if: always()
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Download scan results'
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          name: dependency-scan-results
+          path: scan-results/
+
+      - name: 'Generate security summary'
+        run: |
+          echo "# 🛡️ Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dockerfile Security | ${{ needs.dockerfile-security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secrets Scan | ${{ needs.secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vulnerability Scan | ${{ needs.vulnerability-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ${{ needs.dependency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scan Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All security findings are uploaded to the Security tab." >> $GITHUB_STEP_SUMMARY
+
+      - name: 'Create security issue on high findings'
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = '🚨 Security scan found critical issues';
+            const body = `## ⚠️ Critical Security Findings
+            
+            The automated security scan has detected critical security issues that require immediate attention.
+            
+            **Scan Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Date**: ${new Date().toISOString()}
+            **Commit**: ${{ github.sha }}
+            
+            ### 🔍 Next Steps
+            1. Review the security findings in the Security tab
+            2. Address critical and high severity issues
+            3. Update dependencies and base images as needed
+            4. Re-run security scans to verify fixes
+            
+            ### 📊 Scan Results
+            - Dockerfile Security: ${{ needs.dockerfile-security.result }}
+            - Secrets Scan: ${{ needs.secrets-scan.result }}
+            - Vulnerability Scan: ${{ needs.vulnerability-scan.result }}
+            - Dependency Scan: ${{ needs.dependency-scan.result }}
+            
+            ---
+            *This issue was created automatically by the security scan workflow.*
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'critical', 'automation']
+            });

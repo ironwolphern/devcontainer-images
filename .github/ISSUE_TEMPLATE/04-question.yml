@@ -1,0 +1,63 @@
+name: ❓ General Question
+description: Ask a question about DevContainer images usage, configuration, or troubleshooting
+title: "[QUESTION] "
+labels: ["question", "help wanted"]
+assignees:
+  - ironwolphern
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in DevContainer images! Please search existing issues and discussions before creating a new question.
+        
+        💡 **Quick tip**: Check our [documentation](https://github.com/ironwolphern/devcontainer-images/blob/main/README.md) and [discussions](https://github.com/ironwolphern/devcontainer-images/discussions) first.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: ❓ Your Question
+      description: What would you like to know about DevContainer images?
+      placeholder: Please describe your question clearly and provide context...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: image-type
+    attributes:
+      label: 🐳 Related DevContainer Image
+      description: Which image is your question related to?
+      options:
+        - Ansible
+        - Python
+        - Terraform
+        - Go
+        - All images
+        - General/Not specific
+      default: 5
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📝 Additional Context
+      description: Any additional context, configuration files, or examples that might help us understand your question better
+      placeholder: |
+        Please provide any relevant:
+        - Configuration files (devcontainer.json, Dockerfile, etc.)
+        - Error messages
+        - Expected vs actual behavior
+        - Environment details
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: ✅ Checklist
+      description: Please confirm you have done the following
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have checked the documentation
+          required: true
+        - label: This is not a bug report (use the bug report template for bugs)
+          required: true

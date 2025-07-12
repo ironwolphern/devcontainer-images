@@ -1,0 +1,112 @@
+name: 🚀 Feature Request
+description: Suggest a new feature or improvement for the DevContainer images
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request"]
+assignees:
+  - ironwolphern
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in improving the DevContainer images! 
+        
+        Feature requests help us understand what the community needs and guide our development priorities.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 🚀 Feature Description
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Describe the feature you'd like to request...
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 💡 Motivation
+      description: Why would this feature be useful? What problem does it solve?
+      placeholder: Explain why this feature would be valuable and what problem it addresses...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: 🎯 Use Case
+      description: Describe the specific use case or scenario where this feature would be helpful
+      placeholder: Provide a concrete example of how this feature would be used...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: affected-images
+    attributes:
+      label: 🐳 Affected DevContainer Images
+      description: Which DevContainer images would this feature affect?
+      options:
+        - label: Ansible
+        - label: Python
+        - label: Terraform
+        - label: Go
+        - label: All images
+        - label: New image (please specify in implementation details)
+
+  - type: textarea
+    id: proposed-implementation
+    attributes:
+      label: 📝 Proposed Implementation
+      description: If you have ideas about how this could be implemented, please describe them here
+      placeholder: |
+        Describe any ideas you have for implementing this feature:
+        - Changes to Dockerfile
+        - New tools or packages to include
+        - Configuration changes
+        - Documentation updates
+        - etc.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🔥 Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Really need this
+        - Critical - Blocking my work
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: Describe any alternative approaches you've considered or tried...
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📝 Additional Context
+      description: Any other context, screenshots, or examples related to the feature request
+      placeholder: |
+        Add any other context about the feature request:
+        - Links to relevant documentation
+        - Examples from other projects
+        - Screenshots or mockups
+        - Related issues
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to make sure this is not a duplicate
+          required: true
+        - label: I have provided a clear description of the feature and its benefits
+          required: true
+        - label: This feature aligns with the project's goals
+          required: true

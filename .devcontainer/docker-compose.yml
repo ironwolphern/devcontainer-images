@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock
+    
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker-host.sock
+    
+    command: sleep infinity
+    
+    networks:
+      - devcontainer
+
+networks:
+  devcontainer:
+    driver: bridge

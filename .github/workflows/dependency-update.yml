@@ -1,0 +1,293 @@
+name: 'Dependency Update'
+
+on:
+  schedule:
+    # Run every Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of update to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - base-images
+          - python-packages
+          - go-tools
+          - terraform-tools
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  check-updates:
+    name: 'Check for Updates'
+    runs-on: ubuntu-latest
+    outputs:
+      updates_available: ${{ steps.check.outputs.updates_available }}
+      
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: 'Install update checker dependencies'
+        run: |
+          pip install requests packaging
+
+      - name: 'Check for updates'
+        id: check
+        run: |
+          python3 << 'EOF'
+          import requests
+          import re
+          import json
+          from packaging import version
+          
+          def check_python_version():
+              # Check latest Python version
+              response = requests.get('https://api.github.com/repos/python/cpython/tags')
+              tags = response.json()
+              latest = None
+              for tag in tags:
+                  tag_name = tag['name']
+                  if re.match(r'^v3\.\d+\.\d+$', tag_name):
+                      ver = tag_name[1:]  # Remove 'v' prefix
+                      if latest is None or version.parse(ver) > version.parse(latest):
+                          latest = ver
+              return latest
+          
+          def check_go_version():
+              # Check latest Go version
+              response = requests.get('https://api.github.com/repos/golang/go/tags')
+              tags = response.json()
+              latest = None
+              for tag in tags:
+                  tag_name = tag['name']
+                  if re.match(r'^go1\.\d+\.\d+$', tag_name):
+                      ver = tag_name[2:]  # Remove 'go' prefix
+                      if latest is None or version.parse(ver) > version.parse(latest):
+                          latest = ver
+              return latest
+          
+          def check_terraform_version():
+              # Check latest Terraform version
+              response = requests.get('https://api.github.com/repos/hashicorp/terraform/tags')
+              tags = response.json()
+              latest = None
+              for tag in tags:
+                  tag_name = tag['name']
+                  if re.match(r'^v1\.\d+\.\d+$', tag_name):
+                      ver = tag_name[1:]  # Remove 'v' prefix
+                      if latest is None or version.parse(ver) > version.parse(latest):
+                          latest = ver
+              return latest
+          
+          # Check for updates
+          updates = {}
+          updates['python'] = check_python_version()
+          updates['go'] = check_go_version()
+          updates['terraform'] = check_terraform_version()
+          
+          print(f"Latest versions found:")
+          for tool, ver in updates.items():
+              print(f"  {tool}: {ver}")
+          
+          # Save to file for next step
+          with open('updates.json', 'w') as f:
+              json.dump(updates, f)
+          
+          # Set output using environment file
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output_file:
+              output_file.write("updates_available=true\n")
+          EOF
+
+      - name: 'Upload updates info'
+        uses: actions/upload-artifact@v3
+        with:
+          name: updates-info
+          path: updates.json
+
+  create-update-pr:
+    name: 'Create Update PR'
+    runs-on: ubuntu-latest
+    needs: check-updates
+    if: needs.check-updates.outputs.updates_available == 'true'
+    
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Download updates info'
+        uses: actions/download-artifact@v3
+        with:
+          name: updates-info
+
+      - name: 'Create update branch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b update-dependencies-$(date +%Y%m%d)
+
+      - name: 'Update Dockerfiles'
+        run: |
+          python3 << 'EOF'
+          import json
+          import re
+          
+          # Load updates
+          with open('updates.json', 'r') as f:
+              updates = json.load(f)
+          
+          def update_dockerfile(path, pattern, replacement):
+              try:
+                  with open(path, 'r') as f:
+                      content = f.read()
+                  
+                  new_content = re.sub(pattern, replacement, content)
+                  
+                  if new_content != content:
+                      with open(path, 'w') as f:
+                          f.write(new_content)
+                      print(f"Updated {path}")
+                  else:
+                      print(f"No changes needed in {path}")
+              except FileNotFoundError:
+                  print(f"File not found: {path}")
+          
+          # Update Python version
+          if updates['python']:
+              python_ver = updates['python']
+              major_minor = '.'.join(python_ver.split('.')[:2])
+              update_dockerfile(
+                  'images/ansible/Dockerfile',
+                  r'ARG PYTHON_VERSION=[\d.]+',
+                  f'ARG PYTHON_VERSION={major_minor}'
+              )
+              update_dockerfile(
+                  'images/python/Dockerfile',
+                  r'ARG PYTHON_VERSION=[\d.]+',
+                  f'ARG PYTHON_VERSION={major_minor}'
+              )
+          
+          # Update Go version
+          if updates['go']:
+              go_ver = updates['go']
+              major_minor = '.'.join(go_ver.split('.')[:2])
+              update_dockerfile(
+                  'images/go/Dockerfile',
+                  r'ARG GO_VERSION=[\d.]+',
+                  f'ARG GO_VERSION={major_minor}'
+              )
+          
+          # Update Terraform version
+          if updates['terraform']:
+              tf_ver = updates['terraform']
+              update_dockerfile(
+                  'images/terraform/Dockerfile',
+                  r'ARG TERRAFORM_VERSION=[\d.]+',
+                  f'ARG TERRAFORM_VERSION={tf_ver}'
+              )
+          EOF
+
+      - name: 'Commit changes'
+        run: |
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          git commit -m "chore: update base images and tool versions
+          
+          - Update Python to latest stable version
+          - Update Go to latest stable version  
+          - Update Terraform to latest stable version
+          - Update Alpine to latest stable version
+          
+          This is an automated update created by the dependency update workflow."
+
+      - name: 'Push changes'
+        run: |
+          git push origin HEAD
+
+      - name: 'Create Pull Request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const updates = JSON.parse(fs.readFileSync('updates.json', 'utf8'));
+            
+            const title = 'chore: update dependencies and base images';
+            const body = `## 🔄 Automated Dependency Update
+            
+            This PR updates the base images and tool versions to their latest stable releases:
+            
+            ### 📦 Updated Versions
+            - **Python**: ${updates.python || 'No update available'}
+            - **Go**: ${updates.go || 'No update available'}
+            - **Terraform**: ${updates.terraform || 'No update available'}
+            
+            ### ✅ What's Included
+            - Updated Dockerfile ARG variables
+            - Maintained backward compatibility
+            - All security best practices preserved
+            
+            ### 🧪 Testing
+            This PR will trigger the full CI/CD pipeline to ensure all images build and test successfully.
+            
+            ### 🤖 Automation
+            This PR was created automatically by the dependency update workflow.
+            `;
+            
+            const branchName = context.ref.replace('refs/heads/', '');
+            
+            github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              head: branchName,
+              base: 'main',
+              body: body
+            });
+
+  notify-failure:
+    name: 'Notify Update Failure'
+    runs-on: ubuntu-latest
+    needs: [check-updates, create-update-pr]
+    if: failure()
+    
+    steps:
+      - name: 'Create issue for failed update'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Automated dependency update failed',
+              body: `## ❌ Dependency Update Failure
+              
+              The automated dependency update workflow failed.
+              
+              **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              **Triggered**: ${new Date().toISOString()}
+              
+              Please check the workflow logs and update dependencies manually if needed.
+              
+              ---
+              *This issue was created automatically by the dependency update workflow.*`,
+              labels: ['dependencies', 'automation', 'bug']
+            });

@@ -1,0 +1,27 @@
+# Security configuration for Dependabot
+# This file defines additional security configurations
+
+# Enable Dependabot security alerts
+security-advisories:
+  - enabled: true
+
+# Vulnerability configuration
+vulnerability-alerts:
+  - enabled: true
+  - auto-dismiss-low-severity: false
+
+# Security updates configuration
+security-updates:
+  - enabled: true
+  - auto-merge-patch: true
+  - auto-merge-minor: false
+
+# Monitored ecosystems
+ecosystems:
+  - pip
+  - github-actions
+
+# Notifications configuration
+notifications:
+  - email: true
+  - web: true

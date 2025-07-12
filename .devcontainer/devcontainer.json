@@ -1,0 +1,57 @@
+{
+  "name": "DevContainer Images Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspaces/devcontainer-images",
+  "shutdownAction": "stopCompose",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "uid": 1000,
+      "gid": 1000,
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": true,
+      "moby": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "docker.enableDockerComposeLanguageService": true,
+        "files.associations": {
+          "Dockerfile*": "dockerfile",
+          "*.yml": "yaml",
+          "*.yaml": "yaml"
+        }
+      },
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-python.python",
+        "golang.go",
+        "hashicorp.terraform",
+        "github.vscode-github-actions",
+        "github.copilot",
+        "ms-vscode.makefile-tools"
+      ]
+    }
+  },
+  
+  "forwardPorts": [],
+  
+  "postCreateCommand": "make help && make versions",
+  
+  "remoteUser": "vscode"
+}
