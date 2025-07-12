@@ -22,6 +22,7 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  issues: write
 
 jobs:
   dockerfile-security:
@@ -241,8 +242,9 @@ jobs:
 
       - name: 'Create security issue on high findings'
         if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const title = '🚨 Security scan found critical issues';
             const body = `## ⚠️ Critical Security Findings
