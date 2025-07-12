@@ -4,42 +4,42 @@
 [![Security Scan](https://github.com/ironwolphern/devcontainer-images/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/security-scan.yml)
 [![Dependency Update](https://github.com/ironwolphern/devcontainer-images/actions/workflows/dependency-update.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/dependency-update.yml)
 
-Este repositorio contiene imágenes Docker optimizadas y actualizadas automáticamente para desarrollo con diferentes tecnologías y lenguajes de programación.
+This repository contains optimized Docker images that are automatically updated for development with different technologies and programming languages.
 
-## 📦 Imágenes Disponibles
+## 📦 Available Images
 
-| Tecnología | Versión Actual | Descripción | Herramientas Incluidas |
-|------------|----------------|-------------|------------------------|
-| [Ansible](./images/ansible/) | Ansible 11.7 | Entorno de desarrollo para automatización | Ansible 9.x, ansible-lint, molecule, pytest |
-| [Python](./images/python/) | Python 3.12 | Entorno de desarrollo Python completo | pytest, black, flake8, bandit, fastapi, django |
-| [Terraform](./images/terraform/) | Terraform 1.12.2 | Entorno de desarrollo IaC | Terraform, Terragrunt, TFLint, Checkov |
-| [Go](./images/go/) | Go 1.23 | Entorno de desarrollo Go | gopls, golangci-lint, gosec, delve |
+| Technology | Current Version | Description | Included Tools |
+|------------|----------------|-------------|----------------|
+| [Ansible](./images/ansible/) | Ansible 11.7 | Automation development environment | Ansible, ansible-lint, molecule, pytest |
+| [Python](./images/python/) | Python 3.12 | Complete Python development environment | pytest, black, flake8, bandit, fastapi, django |
+| [Terraform](./images/terraform/) | Terraform 1.12.2 | IaC development environment | Terraform, Terragrunt, TFLint, Checkov |
+| [Go](./images/go/) | Go 1.23 | Go development environment | gopls, golangci-lint, gosec, delve |
 
-## 🚀 Uso Rápido
+## 🚀 Quick Start
 
-### Con Make (Recomendado)
+### With Make (Recommended)
 
 ```bash
-# Ver versiones actuales
+# View current versions
 make versions
 
-# Build todas las imágenes
+# Build all images
 make build-all
 
-# Build imagen específica
+# Build specific image
 make build-python
 
-# Test todas las imágenes
+# Test all images
 make test-all
 
-# Ejecutar imagen específica
+# Run specific image
 make run-python
 ```
 
-### Versiones Personalizadas
+### Custom Versions
 
 ```bash
-# Build con versiones específicas
+# Build with specific versions
 make build-python PYTHON_VERSION=3.11
 make build-go GO_VERSION=1.22
 make build-terraform TERRAFORM_VERSION=1.11.0
@@ -58,38 +58,38 @@ services:
     working_dir: /workspace
 ```
 
-## 🔄 CI/CD y Automatización
+## 🔄 CI/CD and Automation
 
-### Workflows Automatizados
+### Automated Workflows
 
-- **🔨 CI/CD Pipeline**: Build, test y push automático en cambios
-- **🛡️ Security Scan**: Análisis diario de seguridad con Trivy y Hadolint
-- **📦 Dependency Update**: Actualización semanal automática de dependencias
-- **🚀 Release**: Creación automática de releases con tags versionados
+- **🔨 CI/CD Pipeline**: Automatic build, test and push on changes
+- **🛡️ Security Scan**: Daily security analysis with Trivy and Hadolint
+- **📦 Dependency Update**: Weekly automatic dependency updates
+- **🚀 Release**: Automatic release creation with versioned tags
 
-### Actualizaciones Automáticas
+### Automatic Updates
 
-Las imágenes se actualizan automáticamente:
-- **Semanalmente**: Versiones de herramientas y dependencias
-- **Diariamente**: Análisis de seguridad
-- **En cada commit**: Build y tests de integración
+Images are automatically updated:
+- **Weekly**: Tool and dependency versions
+- **Daily**: Security analysis
+- **On each commit**: Build and integration tests
 
-## Características Comunes
+## Common Features
 
-Todas las imágenes siguen las mejores prácticas de seguridad y optimización:
+All images follow security and optimization best practices:
 
-- ✅ **Multi-stage builds** para reducir el tamaño final
-- ✅ **Usuarios no-root** para mayor seguridad
-- ✅ **Health checks** incluidos
-- ✅ **Herramientas de testing** y seguridad
-- ✅ **Optimización de cache** de Docker
-- ✅ **Imágenes base oficiales** y versiones específicas
+- ✅ **Multi-stage builds** to reduce final size
+- ✅ **Non-root users** for enhanced security
+- ✅ **Health checks** included
+- ✅ **Testing and security tools**
+- ✅ **Docker cache optimization**
+- ✅ **Official base images** and specific versions
 
-## ⚙️ Configuración de Versiones
+## ⚙️ Version Configuration
 
-Las versiones están parametrizadas y pueden ser configuradas:
+Versions are parameterized and can be configured:
 
-### Variables de Entorno del Makefile
+### Makefile Environment Variables
 
 ```bash
 export PYTHON_VERSION=3.12
@@ -98,35 +98,35 @@ export TERRAFORM_VERSION=1.12.2
 export ALPINE_VERSION=3.20
 ```
 
-### Build Args de Docker
+### Docker Build Args
 
 ```bash
 docker build --build-arg PYTHON_VERSION=3.12 -t my-python ./images/python
 docker build --build-arg GO_VERSION=1.23 -t my-go ./images/go
 ```
 
-## 🛡️ Seguridad y Calidad
+## 🛡️ Security and Quality
 
-### Análisis Automatizado
+### Automated Analysis
 
-- **Trivy**: Escaneo de vulnerabilidades en imágenes
-- **Grype**: Análisis adicional de seguridad  
-- **Hadolint**: Linting de Dockerfiles
-- **Safety**: Verificación de dependencias Python
-- **TruffleHog**: Detección de secretos
+- **Trivy**: Vulnerability scanning in images
+- **Grype**: Additional security analysis  
+- **Hadolint**: Dockerfile linting
+- **Safety**: Python dependency verification
+- **TruffleHog**: Secret detection
 
-### Mejores Prácticas Implementadas
+### Implemented Best Practices
 
-- ✅ **Usuarios no-root** en todas las imágenes
-- ✅ **Multi-stage builds** para optimización
-- ✅ **Health checks** incluidos
-- ✅ **Análisis de seguridad** automatizado
-- ✅ **Versiones fijadas** de dependencias
-- ✅ **Imágenes base oficiales** verificadas
+- ✅ **Non-root users** in all images
+- ✅ **Multi-stage builds** for optimization
+- ✅ **Health checks** included
+- ✅ **Automated security analysis**
+- ✅ **Fixed dependency versions**
+- ✅ **Verified official base images**
 
 ## 📚 DevContainer Support
 
-Todas las imágenes están optimizadas para VS Code DevContainers:
+All images are optimized for VS Code DevContainers:
 
 ```json
 {
@@ -138,46 +138,46 @@ Todas las imágenes están optimizadas para VS Code DevContainers:
 }
 ```
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-1. Fork el repositorio
-2. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-3. Sigue las mejores prácticas definidas en `.github/instructions/`
-4. Ejecuta los tests: `make test-all`
-5. Ejecuta el linting: `hadolint images/*/Dockerfile`
-6. Crea un Pull Request
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-functionality`
+3. Follow the best practices defined in `.github/instructions/`
+4. Run tests: `make test-all`
+5. Run linting: `hadolint images/*/Dockerfile`
+6. Create a Pull Request
 
-### Desarrollo Local
+### Local Development
 
 ```bash
-# Abrir en DevContainer (VS Code)
+# Open in DevContainer (VS Code)
 code .
 
-# O usar directamente
+# Or use directly
 make build-all
 make test-all
 ```
 
-## 📋 Versionado
+## 📋 Versioning
 
-Este proyecto sigue [Semantic Versioning](https://semver.org/):
+This project follows [Semantic Versioning](https://semver.org/):
 
-- **MAJOR**: Cambios incompatibles en la API
-- **MINOR**: Nuevas funcionalidades compatibles
-- **PATCH**: Correcciones y actualizaciones de seguridad
+- **MAJOR**: Incompatible API changes
+- **MINOR**: New backwards-compatible functionality
+- **PATCH**: Bug fixes and security updates
 
-## 🔗 Enlaces Útiles
+## 🔗 Useful Links
 
 - [Docker Hub](https://hub.docker.com/u/ironwolphern)
 - [GitHub Container Registry](https://github.com/ironwolphern/devcontainer-images/pkgs/container)
 - [DevContainers Specification](https://containers.dev/)
 - [VS Code DevContainers](https://code.visualstudio.com/docs/devcontainers/containers)
 
-## 📄 Licencia
+## 📄 License
 
-Ver [LICENSE](LICENSE) para más detalles.
+See [LICENSE](LICENSE) for more details.
 
 ---
 
-**Mantenido por**: [@ironwolphern](https://github.com/ironwolphern)  
-**Última actualización**: Julio 2025
+**Maintained by**: [@ironwolphern](https://github.com/ironwolphern)  
+**Last updated**: July 2025

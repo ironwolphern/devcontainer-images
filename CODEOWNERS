@@ -1,0 +1,44 @@
+# CODEOWNERS for devcontainer-images repository
+# This file defines who owns different parts of the codebase
+# and will be automatically requested for review when changes are made
+
+# Global ownership - ironwolphern owns the entire repository
+* @ironwolphern
+
+# Documentation files
+*.md @ironwolphern
+/docs/ @ironwolphern
+
+# Configuration files
+/.github/ @ironwolphern
+.gitignore @ironwolphern
+.gitattributes @ironwolphern
+Makefile @ironwolphern
+CONTRIBUTING.md @ironwolphern
+LICENSE @ironwolphern
+README.md @ironwolphern
+SECURITY.md @ironwolphern
+CODE_OF_CONDUCT.md @ironwolphern
+
+# Docker images and containers
+/images/ @ironwolphern
+/images/ansible/ @ironwolphern
+/images/go/ @ironwolphern
+/images/python/ @ironwolphern
+/images/terraform/ @ironwolphern
+
+# Dockerfile and Docker Compose files
+Dockerfile @ironwolphern
+*.dockerfile @ironwolphern
+docker-compose*.yml @ironwolphern
+docker-compose*.yaml @ironwolphern
+
+# CI/CD and automation
+/.github/workflows/ @ironwolphern
+/.github/actions/ @ironwolphern
+
+# Requirements and dependency files
+requirements.txt @ironwolphern
+package.json @ironwolphern
+go.mod @ironwolphern
+go.sum @ironwolphern
