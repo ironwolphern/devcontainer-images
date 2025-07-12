@@ -1,14 +1,14 @@
 # Python DevContainer Image
 
-Imagen Docker completa para desarrollo Python con herramientas de testing, linting y análisis de seguridad.
+Complete Docker image for Python development with testing, linting and security analysis tools.
 
-## Características
+## Features
 
 - **Base**: Python 3.12 slim
-- **Usuario**: `developer` (UID 1001, no-root)
-- **Directorio de trabajo**: `/workspace`
+- **User**: `developer` (UID 1001, non-root)
+- **Working directory**: `/workspace`
 
-## Herramientas Incluidas
+## Included Tools
 
 ### Core
 - Python 3.12
@@ -32,30 +32,30 @@ Imagen Docker completa para desarrollo Python con herramientas de testing, linti
 ### Documentation
 - Sphinx + RTD theme
 
-### Frameworks (Opcionales)
+### Frameworks (Optional)
 - FastAPI, Flask, Django
 - SQLAlchemy, psycopg2
 - requests, httpx
 
-### Data Science (Opcionales)
+### Data Science (Optional)
 - pandas, numpy, matplotlib
 - Jupyter
 
-## Uso
+## Usage
 
 ### Build
 ```bash
 docker build -t python-dev .
 ```
 
-### Ejecutar
+### Run
 ```bash
 docker run -it --rm \
   -v $(pwd):/workspace \
   python-dev
 ```
 
-### Con Docker Compose
+### With Docker Compose
 ```yaml
 version: '3.8'
 services:
@@ -68,16 +68,16 @@ services:
       - "8000:8000"
 ```
 
-## Variables de Entorno
+## Environment Variables
 
 - `PYTHONPATH=/workspace`
 - `PYTHONDONTWRITEBYTECODE=1`
 - `PYTHONUNBUFFERED=1`
 
-## Comandos Útiles
+## Useful Commands
 
 ```bash
-# Formatear código
+# Format code
 black .
 
 # Linting
@@ -92,9 +92,9 @@ bandit -r src/
 safety check
 ```
 
-## Seguridad
+## Security
 
-- Ejecuta como usuario no-root (`developer`)
-- Análisis de seguridad con bandit y safety
-- Dependencias fijadas por versión
-- Health check incluido
+- Runs as non-root user (`developer`)
+- Security analysis with bandit and safety
+- Version-pinned dependencies
+- Health check included

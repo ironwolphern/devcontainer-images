@@ -1,38 +1,38 @@
 # Ansible DevContainer Image
 
-Imagen Docker optimizada para desarrollo con Ansible, incluyendo herramientas de testing y linting.
+Optimized Docker image for Ansible development, including testing and linting tools.
 
-## Características
+## Features
 
 - **Base**: Python 3.12 slim
-- **Usuario**: `ansible` (UID 1001, no-root)
-- **Directorio de trabajo**: `/workspace`
+- **User**: `ansible` (UID 1001, non-root)
+- **Working directory**: `/workspace`
 
-## Herramientas Incluidas
+## Included Tools
 
 ### Core
 - Ansible >= 9.0.0
 - Ansible Core >= 2.16.0
 
-### Testing y Quality
+### Testing and Quality
 - Ansible Lint
-- Molecule (con Docker driver)
+- Molecule (with Docker driver)
 - Pytest + pytest-ansible
 - Yamllint
 
-### Utilidades
+### Utilities
 - Git, SSH client, curl
 - Jinja2, netaddr, requests
 - Cryptography
 
-## Uso
+## Usage
 
 ### Build
 ```bash
 docker build -t ansible-dev .
 ```
 
-### Ejecutar
+### Run
 ```bash
 docker run -it --rm \
   -v $(pwd):/workspace \
@@ -40,7 +40,7 @@ docker run -it --rm \
   ansible-dev
 ```
 
-### Con Docker Compose
+### With Docker Compose
 ```yaml
 version: '3.8'
 services:
@@ -52,15 +52,15 @@ services:
     working_dir: /workspace
 ```
 
-## Variables de Entorno
+## Environment Variables
 
 - `ANSIBLE_HOST_KEY_CHECKING=False`
 - `ANSIBLE_STDOUT_CALLBACK=yaml`
 - `ANSIBLE_INVENTORY_UNPARSED_WARNING=False`
 
-## Seguridad
+## Security
 
-- Ejecuta como usuario no-root (`ansible`)
-- Imagen base oficial de Python
-- Dependencias fijadas por versión
-- Health check incluido
+- Runs as non-root user (`ansible`)
+- Official Python base image
+- Version-pinned dependencies
+- Health check included

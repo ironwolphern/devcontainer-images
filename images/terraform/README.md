@@ -1,38 +1,38 @@
 # Terraform DevContainer Image
 
-Imagen Docker optimizada para desarrollo con Terraform e Infrastructure as Code, incluyendo herramientas de testing y análisis de seguridad.
+Optimized Docker image for Terraform and Infrastructure as Code development, including testing and security analysis tools.
 
-## Características
+## Features
 
 - **Base**: Alpine Linux 3.20
-- **Usuario**: `terraform` (UID 1001, no-root)
-- **Directorio de trabajo**: `/workspace`
+- **User**: `terraform` (UID 1001, non-root)
+- **Working directory**: `/workspace`
 
-## Herramientas Incluidas
+## Included Tools
 
 ### Core
 - Terraform 1.12.2
 - Terragrunt 0.67.16
 
-### Linting y Testing
+### Linting and Testing
 - TFLint
 - Checkov (security scanning)
 - Terrascan
 - pre-commit
 
-### Utilidades
+### Utilities
 - Git, SSH client, curl
 - Python 3 + pip
 - make, bash
 
-## Uso
+## Usage
 
 ### Build
 ```bash
 docker build -t terraform-dev .
 ```
 
-### Ejecutar
+### Run
 ```bash
 docker run -it --rm \
   -v $(pwd):/workspace \
@@ -40,7 +40,7 @@ docker run -it --rm \
   terraform-dev
 ```
 
-### Con Docker Compose
+### With Docker Compose
 ```yaml
 version: '3.8'
 services:
@@ -54,22 +54,22 @@ services:
       - AWS_PROFILE=default
 ```
 
-## Variables de Entorno
+## Environment Variables
 
 - `TF_IN_AUTOMATION=true`
 - `TF_INPUT=false`
 - `TF_CLI_ARGS_plan=-no-color`
 - `TF_CLI_ARGS_apply=-no-color`
 
-## Comandos Útiles
+## Useful Commands
 
 ```bash
-# Terraform básico
+# Basic Terraform
 terraform init
 terraform plan
 terraform apply
 
-# Con Terragrunt
+# With Terragrunt
 terragrunt init
 terragrunt plan
 terragrunt apply
@@ -82,17 +82,17 @@ checkov -d .
 terrascan scan -t terraform
 ```
 
-## Seguridad
+## Security
 
-- Ejecuta como usuario no-root (`terraform`)
-- Análisis de seguridad con Checkov y Terrascan
-- Binarios verificados desde fuentes oficiales
-- Health check incluido
+- Runs as non-root user (`terraform`)
+- Security analysis with Checkov and Terrascan
+- Verified binaries from official sources
+- Health check included
 
-## Providers Soportados
+## Supported Providers
 
-Esta imagen funciona con todos los providers de Terraform. Para providers que requieren autenticación:
+This image works with all Terraform providers. For providers requiring authentication:
 
-- **AWS**: Monta `~/.aws` o usa variables de entorno
-- **Azure**: Usa `az login` o variables de entorno
-- **GCP**: Monta service account key o usa variables de entorno
+- **AWS**: Mount `~/.aws` or use environment variables
+- **Azure**: Use `az login` or environment variables
+- **GCP**: Mount service account key or use environment variables

@@ -1,14 +1,14 @@
 # Go DevContainer Image
 
-Imagen Docker optimizada para desarrollo con Go, incluyendo herramientas de testing, linting y análisis de seguridad.
+Optimized Docker image for Go development, including testing, linting and security analysis tools.
 
-## Características
+## Features
 
 - **Base**: Go 1.23 Alpine
-- **Usuario**: `gopher` (UID 1001, no-root)
-- **Directorio de trabajo**: `/workspace`
+- **User**: `gopher` (UID 1001, non-root)
+- **Working directory**: `/workspace`
 
-## Herramientas Incluidas
+## Included Tools
 
 ### Core
 - Go 1.23
@@ -18,7 +18,7 @@ Imagen Docker optimizada para desarrollo con Go, incluyendo herramientas de test
 - gopls (Language Server)
 - delve (debugger)
 
-### Linting y Quality
+### Linting and Quality
 - golangci-lint (meta-linter)
 - staticcheck (static analysis)
 
@@ -29,21 +29,21 @@ Imagen Docker optimizada para desarrollo con Go, incluyendo herramientas de test
 - Ginkgo (BDD testing framework)
 - gotestsum (enhanced test output)
 
-## Uso
+## Usage
 
 ### Build
 ```bash
 docker build -t go-dev .
 ```
 
-### Ejecutar
+### Run
 ```bash
 docker run -it --rm \
   -v $(pwd):/workspace \
   go-dev
 ```
 
-### Con Docker Compose
+### With Docker Compose
 ```yaml
 version: '3.8'
 services:
@@ -60,7 +60,7 @@ volumes:
   go-cache:
 ```
 
-## Variables de Entorno
+## Environment Variables
 
 - `CGO_ENABLED=0`
 - `GOOS=linux`
@@ -69,17 +69,17 @@ volumes:
 - `GOPROXY=https://proxy.golang.org,direct`
 - `GOSUMDB=sum.golang.org`
 
-## Comandos Útiles
+## Useful Commands
 
 ```bash
-# Inicializar módulo
+# Initialize module
 go mod init myproject
 
-# Build y test
+# Build and test
 go build ./...
 go test ./...
 
-# Con gotestsum
+# With gotestsum
 gotestsum ./...
 
 # Linting
@@ -88,31 +88,31 @@ golangci-lint run
 # Security scan
 gosec ./...
 
-# Testing con Ginkgo
+# Testing with Ginkgo
 ginkgo generate
 ginkgo
 ```
 
-## Estructura de Proyecto Recomendada
+## Recommended Project Structure
 
 ```
 /workspace/
-├── cmd/                 # Aplicaciones principales
-├── internal/            # Código privado de la aplicación
-├── pkg/                # Librerías públicas
-├── api/                # Definiciones de API
-├── web/                # Assets web
-├── configs/            # Archivos de configuración
-├── scripts/            # Scripts de build y deploy
-├── test/               # Tests adicionales
+├── cmd/                 # Main applications
+├── internal/            # Private application code
+├── pkg/                # Public libraries
+├── api/                # API definitions
+├── web/                # Web assets
+├── configs/            # Configuration files
+├── scripts/            # Build and deploy scripts
+├── test/               # Additional tests
 ├── go.mod
 └── go.sum
 ```
 
-## Seguridad
+## Security
 
-- Ejecuta como usuario no-root (`gopher`)
-- Análisis de seguridad con gosec
-- Go modules con checksum verification
-- Health check incluido
-- CGO deshabilitado por defecto para binarios estáticos
+- Runs as non-root user (`gopher`)
+- Security analysis with gosec
+- Go modules with checksum verification
+- Health check included
+- CGO disabled by default for static binaries
