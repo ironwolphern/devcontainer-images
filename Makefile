@@ -7,6 +7,7 @@ IMAGES = ansible python terraform go
 
 # Version variables (can be overridden)
 PYTHON_VERSION ?= 3.12
+ANSIBLE_VERSION ?= 11.7
 GO_VERSION ?= 1.23
 ALPINE_VERSION ?= 3.20
 TERRAFORM_VERSION ?= 1.12.2
@@ -36,6 +37,7 @@ help: ## Show this help message
 versions: ## Show current versions
 	@echo "📦 Current Versions:"
 	@echo "  Python:     $(PYTHON_VERSION)"
+	@echo "  Ansible:    $(ANSIBLE_VERSION)"
 	@echo "  Go:         $(GO_VERSION)"
 	@echo "  Alpine:     $(ALPINE_VERSION)"
 	@echo "  Terraform:  $(TERRAFORM_VERSION)"

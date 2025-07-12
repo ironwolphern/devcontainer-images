@@ -1,0 +1,142 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability in the DevContainer images
+title: "[SECURITY] "
+labels: ["security", "critical"]
+assignees:
+  - ironwolphern
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # ⚠️ Security Issue Report
+        
+        **IMPORTANT**: If this is a sensitive security vulnerability that could be exploited, please report it privately through [GitHub Security Advisories](https://github.com/ironwolphern/devcontainer-images/security/advisories/new) instead of creating a public issue.
+        
+        Use this form only for general security concerns, configuration issues, or vulnerabilities that are already publicly known.
+
+  - type: checkboxes
+    id: security-type
+    attributes:
+      label: 🔒 Security Issue Type
+      description: What type of security issue is this?
+      options:
+        - label: Vulnerability in base image
+        - label: Vulnerable dependency
+        - label: Configuration security issue
+        - label: Access control issue
+        - label: Exposed secrets or credentials
+        - label: Other (please specify in description)
+
+  - type: checkboxes
+    id: affected-images
+    attributes:
+      label: 🐳 Affected DevContainer Images
+      description: Which images are affected by this security issue?
+      options:
+        - label: Ansible
+        - label: Python
+        - label: Terraform
+        - label: Go
+        - label: All images
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 Severity Level
+      description: How severe is this security issue?
+      options:
+        - Critical - Immediate action required
+        - High - Should be fixed soon
+        - Medium - Should be addressed
+        - Low - Minor security concern
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability-details
+    attributes:
+      label: 🎯 Vulnerability Details
+      description: Please provide a detailed description of the security issue
+      placeholder: |
+        Describe the security issue in detail:
+        - What is the vulnerability?
+        - How can it be exploited?
+        - What is the potential impact?
+        - Are there any known exploits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 🔍 Steps to Reproduce
+      description: How can this security issue be reproduced or verified?
+      placeholder: |
+        1. Step one...
+        2. Step two...
+        3. Step three...
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: 💥 Impact Assessment
+      description: What is the potential impact of this security issue?
+      placeholder: |
+        Describe the potential impact:
+        - Data exposure risk
+        - System compromise potential
+        - Affected users
+        - Business impact
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: 🛡️ Suggested Mitigation
+      description: Do you have any suggestions for fixing or mitigating this issue?
+      placeholder: |
+        If you have suggestions for fixing this issue:
+        - Recommended patches or updates
+        - Configuration changes
+        - Workarounds
+        - Best practices to implement
+
+  - type: input
+    id: cve-reference
+    attributes:
+      label: 🔗 CVE Reference
+      description: If this is related to a known CVE, please provide the reference
+      placeholder: e.g., CVE-2023-12345
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: 📝 Additional Information
+      description: Any additional context, references, or information
+      placeholder: |
+        Provide any additional information:
+        - Security advisories
+        - Research papers
+        - Proof of concept code
+        - Related vulnerabilities
+
+  - type: checkboxes
+    id: responsible-disclosure
+    attributes:
+      label: ✅ Responsible Disclosure
+      description: Please confirm your understanding of responsible disclosure
+      options:
+        - label: I understand this is a public issue and will not include sensitive exploit details
+          required: true
+        - label: I have considered reporting this privately if it's a critical vulnerability
+          required: true
+        - label: I will follow responsible disclosure practices
+          required: true

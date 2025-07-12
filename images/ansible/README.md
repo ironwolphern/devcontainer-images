@@ -4,15 +4,15 @@ Imagen Docker optimizada para desarrollo con Ansible, incluyendo herramientas de
 
 ## Características
 
-- **Base**: Python 3.11 slim
+- **Base**: Python 3.12 slim
 - **Usuario**: `ansible` (UID 1001, no-root)
 - **Directorio de trabajo**: `/workspace`
 
 ## Herramientas Incluidas
 
 ### Core
-- Ansible >= 8.0.0
-- Ansible Core >= 2.15.0
+- Ansible >= 9.0.0
+- Ansible Core >= 2.16.0
 
 ### Testing y Quality
 - Ansible Lint

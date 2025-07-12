@@ -4,14 +4,14 @@ Imagen Docker completa para desarrollo Python con herramientas de testing, linti
 
 ## Características
 
-- **Base**: Python 3.11 slim
+- **Base**: Python 3.12 slim
 - **Usuario**: `developer` (UID 1001, no-root)
 - **Directorio de trabajo**: `/workspace`
 
 ## Herramientas Incluidas
 
 ### Core
-- Python 3.11
+- Python 3.12
 - pip, setuptools, wheel
 
 ### Testing

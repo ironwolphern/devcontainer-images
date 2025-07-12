@@ -10,7 +10,7 @@ Este repositorio contiene imágenes Docker optimizadas y actualizadas automátic
 
 | Tecnología | Versión Actual | Descripción | Herramientas Incluidas |
 |------------|----------------|-------------|------------------------|
-| [Ansible](./images/ansible/) | Python 3.12 | Entorno de desarrollo para automatización | Ansible 9.x, ansible-lint, molecule, pytest |
+| [Ansible](./images/ansible/) | Ansible 11.7 | Entorno de desarrollo para automatización | Ansible 9.x, ansible-lint, molecule, pytest |
 | [Python](./images/python/) | Python 3.12 | Entorno de desarrollo Python completo | pytest, black, flake8, bandit, fastapi, django |
 | [Terraform](./images/terraform/) | Terraform 1.12.2 | Entorno de desarrollo IaC | Terraform, Terragrunt, TFLint, Checkov |
 | [Go](./images/go/) | Go 1.23 | Entorno de desarrollo Go | gopls, golangci-lint, gosec, delve |

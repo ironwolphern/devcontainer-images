@@ -1,0 +1,19 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Report
+    url: https://github.com/ironwolphern/devcontainer-images/security/advisories/new
+    about: Report security vulnerabilities privately through GitHub Security Advisories
+  
+  - name: 📖 Documentation
+    url: https://github.com/ironwolphern/devcontainer-images/blob/main/README.md
+    about: Check the documentation for setup instructions and troubleshooting guides
+
+  - name: 🐳 Package Registry
+    url: https://github.com/ironwolphern?tab=packages&repo_name=devcontainer-images
+    about: View published DevContainer images and their documentation on the Package Registry
+
+  - name: 🔧 DevContainer Documentation
+    url: https://containers.dev/
+    about: Official DevContainer specification and documentation
+

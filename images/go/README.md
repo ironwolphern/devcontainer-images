@@ -4,14 +4,14 @@ Imagen Docker optimizada para desarrollo con Go, incluyendo herramientas de test
 
 ## Características
 
-- **Base**: Go 1.21 Alpine
+- **Base**: Go 1.23 Alpine
 - **Usuario**: `gopher` (UID 1001, no-root)
 - **Directorio de trabajo**: `/workspace`
 
 ## Herramientas Incluidas
 
 ### Core
-- Go 1.21
+- Go 1.23
 - Git, make, bash
 
 ### Development Tools
