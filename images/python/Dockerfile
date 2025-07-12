@@ -4,7 +4,7 @@
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim AS builder
 
-# Install build dependencies and tools
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.9 \
     gcc=4:12.2.0-3 \

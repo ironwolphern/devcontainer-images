@@ -4,7 +4,7 @@
 ARG ALPINE_VERSION=3.20
 FROM alpine:${ALPINE_VERSION} AS downloader
 
-# Install download dependencies and tools
+# Install download dependencies
 RUN apk add --no-cache \
     curl=8.12.1-r0 \
     unzip=6.0-r14 \

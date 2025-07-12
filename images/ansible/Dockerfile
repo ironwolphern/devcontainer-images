@@ -22,7 +22,7 @@ RUN pip install --user --no-cache-dir -r requirements.txt
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim AS production
 
-# Install runtime dependencies and tools
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client=1:9.2p1-2+deb12u6 \
     sshpass=1.09-1+b1 \

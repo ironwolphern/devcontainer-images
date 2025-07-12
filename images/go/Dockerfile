@@ -20,14 +20,15 @@ RUN go install golang.org/x/tools/gopls@v0.18.0 && \
     go install honnef.co/go/tools/cmd/staticcheck@latest && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
     go install github.com/onsi/ginkgo/v2/ginkgo@latest && \
-    go install gotest.tools/gotestsum@latest
+    go install gotest.tools/gotestsum@latest && \
+    go install github.com/securego/gosec/v2/cmd/gosec@latest
 
 # Production stage
 ARG GO_VERSION=1.23
 ARG ALPINE_VERSION=3.20
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
-# Install runtime dependencies and tools
+# Install runtime dependencies
 RUN apk add --no-cache \
     git=2.45.4-r0 \
     curl=8.12.1-r0 \
