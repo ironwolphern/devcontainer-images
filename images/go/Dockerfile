@@ -27,7 +27,7 @@ ARG GO_VERSION=1.23
 ARG ALPINE_VERSION=3.20
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
-# Install runtime dependencies
+# Install runtime dependencies and tools
 RUN apk add --no-cache \
     git=2.45.4-r0 \
     curl=8.12.1-r0 \
