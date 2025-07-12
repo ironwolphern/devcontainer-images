@@ -7,19 +7,18 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
-    git=2.* \
-    ca-certificates=20240705-r0 \
-    gcc=13.* \
-    musl-dev=1.*
+    git=2.45.4-r0 \
+    ca-certificates=20241121-r1 \
+    gcc=13.2.1_git20240309-r1 \
+    musl-dev=1.2.5-r1
 
 WORKDIR /tmp
 
 # Install Go tools
-RUN go install golang.org/x/tools/gopls@latest && \
+RUN go install golang.org/x/tools/gopls@v0.18.0 && \
     go install github.com/go-delve/delve/cmd/dlv@latest && \
     go install honnef.co/go/tools/cmd/staticcheck@latest && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
-    go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest && \
     go install github.com/onsi/ginkgo/v2/ginkgo@latest && \
     go install gotest.tools/gotestsum@latest
 
@@ -30,11 +29,11 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \
-    git=2.* \
-    curl=8.* \
-    ca-certificates=20240705-r0 \
-    bash=5.* \
-    make=4.* \
+    git=2.45.4-r0 \
+    curl=8.12.1-r0 \
+    ca-certificates=20241121-r1 \
+    bash=5.2.26-r0 \
+    make=4.4.1-r2 \
     && update-ca-certificates
 
 # Create non-root user
