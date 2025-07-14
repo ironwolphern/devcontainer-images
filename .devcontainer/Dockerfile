@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     gnupg \
     lsb-release \
+    jq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -28,8 +29,8 @@ RUN wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/release
     && chmod +x /usr/local/bin/hadolint
 
 # Copy and configure GPG script
-COPY .devcontainer/setup-gpg.sh /usr/local/bin/setup-gpg.sh
-RUN chmod +x /usr/local/bin/setup-gpg.sh
+# COPY .devcontainer/setup-gpg.sh /usr/local/bin/setup-gpg.sh
+# RUN chmod +x /usr/local/bin/setup-gpg.sh
 
 # Add vscode user to docker group (user already exists in base image)
 RUN usermod -aG docker vscode || true
