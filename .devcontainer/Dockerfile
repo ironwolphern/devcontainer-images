@@ -27,6 +27,10 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
 RUN wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 \
     && chmod +x /usr/local/bin/hadolint
 
+# Copy and configure GPG script
+COPY .devcontainer/setup-gpg.sh /usr/local/bin/setup-gpg.sh
+RUN chmod +x /usr/local/bin/setup-gpg.sh
+
 # Add vscode user to docker group (user already exists in base image)
 RUN usermod -aG docker vscode || true
 

@@ -50,8 +50,8 @@
   },
   
   "forwardPorts": [],
-  
+
   "postCreateCommand": "make help && make versions",
-  
+
   "remoteUser": "vscode"
 }

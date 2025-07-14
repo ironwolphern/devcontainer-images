@@ -1,0 +1,24 @@
+# Ansible Configuration File
+# Copy this file to your project as ansible.cfg and customize as needed
+
+[defaults]
+# Uncomment and customize these settings as needed for your environment
+# host_key_checking = False
+# inventory = ./inventory
+# remote_user = ansible
+# private_key_file = ~/.ssh/id_rsa
+# timeout = 30
+# gathering = smart
+# fact_caching = memory
+
+# Output formatting
+stdout_callback = yaml
+inventory_unparsed_warning = False
+
+# Logging
+# log_path = ./ansible.log
+
+[ssh_connection]
+# SSH connection settings
+# ssh_args = -o ControlMaster=auto -o ControlPersist=60s
+# pipelining = True

@@ -6,7 +6,7 @@ TAG ?= latest
 IMAGES = ansible python terraform go
 
 # Version variables (can be overridden)
-PYTHON_VERSION ?= 3.12
+PYTHON_VERSION ?= 3.13
 ANSIBLE_VERSION ?= 11.7
 GO_VERSION ?= 1.23
 ALPINE_VERSION ?= 3.20

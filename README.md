@@ -10,8 +10,8 @@ This repository contains optimized Docker images that are automatically updated 
 
 | Technology | Current Version | Description | Included Tools |
 |------------|----------------|-------------|----------------|
-| [Ansible](./images/ansible/) | Ansible 11.7 | Automation development environment | Ansible, ansible-lint, molecule, pytest |
-| [Python](./images/python/) | Python 3.12 | Complete Python development environment | pytest, black, flake8, bandit, fastapi, django |
+| [Ansible](./images/ansible/) | Ansible 11.7 | Automation development environment | Ansible, ansible-dev-tools, ansible-lint, molecule, pytest |
+| [Python](./images/python/) | Python 3.13 | Complete Python development environment | pytest, black, flake8, bandit, fastapi, django |
 | [Terraform](./images/terraform/) | Terraform 1.12.2 | IaC development environment | Terraform, Terragrunt, TFLint, Checkov |
 | [Go](./images/go/) | Go 1.23 | Go development environment | gopls, golangci-lint, gosec, delve |
 
@@ -40,9 +40,9 @@ make run-python
 
 ```bash
 # Build with specific versions
-make build-python PYTHON_VERSION=3.11
-make build-go GO_VERSION=1.22
-make build-terraform TERRAFORM_VERSION=1.11.0
+make build-python PYTHON_VERSION=3.13
+make build-go GO_VERSION=1.23
+make build-terraform TERRAFORM_VERSION=1.12.2
 ```
 
 ### Docker Compose
@@ -92,7 +92,7 @@ Versions are parameterized and can be configured:
 ### Makefile Environment Variables
 
 ```bash
-export PYTHON_VERSION=3.12
+export PYTHON_VERSION=3.13
 export GO_VERSION=1.23
 export TERRAFORM_VERSION=1.12.2
 export ALPINE_VERSION=3.20
@@ -101,7 +101,7 @@ export ALPINE_VERSION=3.20
 ### Docker Build Args
 
 ```bash
-docker build --build-arg PYTHON_VERSION=3.12 -t my-python ./images/python
+docker build --build-arg PYTHON_VERSION=3.13 -t my-python ./images/python
 docker build --build-arg GO_VERSION=1.23 -t my-go ./images/go
 ```
 
