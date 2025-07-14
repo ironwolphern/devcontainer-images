@@ -196,7 +196,7 @@ jobs:
 
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./images/${{ matrix.image }}
           platforms: linux/amd64
@@ -258,7 +258,7 @@ jobs:
         if: |
           steps.should_build.outputs.build == 'true' &&
           (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./images/${{ matrix.image }}
           platforms: linux/amd64,linux/arm64
