@@ -1,21 +1,21 @@
 # syntax=docker/dockerfile:1
 
 # Multi-stage build for Go development environment
-ARG GO_VERSION=1.23
-ARG ALPINE_VERSION=3.20
+ARG GO_VERSION=1.24
+ARG ALPINE_VERSION=3.22
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 # Install build dependencies and tools
 RUN apk add --no-cache \
-    git=2.45.4-r0 \
-    ca-certificates=20241121-r1 \
-    gcc=13.2.1_git20240309-r1 \
-    musl-dev=1.2.5-r1
+    git=2.49.1-r0 \
+    ca-certificates=20250619-r0	\
+    gcc=14.2.0-r6 \
+    musl-dev=1.2.5-r10	
 
 WORKDIR /tmp
 
 # Install Go tools
-RUN go install golang.org/x/tools/gopls@v0.18.0 && \
+RUN go install golang.org/x/tools/gopls@latest && \
     go install github.com/go-delve/delve/cmd/dlv@latest && \
     go install honnef.co/go/tools/cmd/staticcheck@latest && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
@@ -24,17 +24,17 @@ RUN go install golang.org/x/tools/gopls@v0.18.0 && \
     go install github.com/securego/gosec/v2/cmd/gosec@latest
 
 # Production stage
-ARG GO_VERSION=1.23
-ARG ALPINE_VERSION=3.20
+ARG GO_VERSION=1.24
+ARG ALPINE_VERSION=3.22
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \
-    git=2.45.4-r0 \
-    curl=8.12.1-r0 \
-    ca-certificates=20241121-r1 \
-    bash=5.2.26-r0 \
-    make=4.4.1-r2 \
+    git=2.49.1-r0 \
+    curl=8.14.1-r1 \
+    ca-certificates=20250619-r0	\
+    bash=5.2.37-r0 \
+    make=4.4.1-r3 \
     && update-ca-certificates
 
 # Create non-root user

@@ -60,15 +60,7 @@ services:
 ## Configuration
 
 For security reasons, sensitive Ansible configurations like `host_key_checking` are not set by default. 
-Create an `ansible.cfg` file in your project to configure Ansible settings:
-
-```bash
-# Copy the example configuration
-cp ansible.cfg.example ansible.cfg
-
-# Edit as needed for your environment
-nano ansible.cfg
-```
+Create an `ansible.cfg` file in your project to configure Ansible settings.
 
 Example configuration:
 ```ini

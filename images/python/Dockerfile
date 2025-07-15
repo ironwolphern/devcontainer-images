@@ -1,17 +1,17 @@
 # syntax=docker/dockerfile:1
 
 # Multi-stage build for Python development environment
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim AS builder
 
 # Install build dependencies and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential=12.9 \
-    gcc=4:12.2.0-3 \
-    g++=4:12.2.0-3 \
-    libffi-dev=3.4.4-1 \
-    libssl-dev=3.0.16-1~deb12u1 \
-    libpq-dev=15.13-0+deb12u1 \
+    build-essential=12.* \
+    gcc=4:12.* \
+    g++=4:12.* \
+    libffi-dev=3.* \
+    libssl-dev=3.* \
+    libpq-dev=15.* \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -21,15 +21,16 @@ COPY requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 
 # Production stage
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim AS production
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git=1:2.39.5-0+deb12u2 \
-    curl=7.88.1-10+deb12u12 \
+    git=1:2.* \
+    curl=7.* \
+    jq=1.* \
     ca-certificates=20230311+deb12u1 \
-    libpq5=15.13-0+deb12u1 \
+    libpq5=15.* \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
