@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report a bug! This helps us improve the DevContainer images for everyone.
-        
+
         Please fill out the information below to help us understand and reproduce the issue.
 
   - type: textarea

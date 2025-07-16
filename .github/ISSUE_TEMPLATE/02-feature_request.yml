@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         Thanks for your interest in improving the DevContainer images! 
-        
+
         Feature requests help us understand what the community needs and guide our development priorities.
 
   - type: textarea

@@ -4,7 +4,7 @@ contact_links:
   - name: 🔒 Security Vulnerability Report
     url: https://github.com/ironwolphern/devcontainer-images/security/advisories/new
     about: Report security vulnerabilities privately through GitHub Security Advisories
-  
+
   - name: 📖 Documentation
     url: https://github.com/ironwolphern/devcontainer-images/blob/main/README.md
     about: Check the documentation for setup instructions and troubleshooting guides

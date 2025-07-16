@@ -2,7 +2,9 @@
 ansible>=9.0.0
 ansible-core>=2.16.0
 ansible-lint>=24.0.0
+ansible-dev-tools>=25.0.0
 molecule>=24.0.0
+molecule-plugins>=23.5.0
 molecule-docker>=2.1.0
 pytest>=8.0.0
 pytest-ansible>=24.0.0
@@ -11,3 +13,6 @@ jinja2>=3.1.0
 netaddr>=1.0.0
 requests>=2.32.0
 cryptography>=42.0.0
+hvac>=2.3.0
+proxmoxer>=2.1.0
+docker>=7.0.0

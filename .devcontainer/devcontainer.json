@@ -4,7 +4,7 @@
   "service": "dev",
   "workspaceFolder": "/workspaces/devcontainer-images",
   "shutdownAction": "stopCompose",
-  
+
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "username": "vscode",
@@ -23,7 +23,7 @@
       "version": "latest"
     }
   },
-  
+
   "customizations": {
     "vscode": {
       "settings": {
@@ -44,14 +44,15 @@
         "hashicorp.terraform",
         "github.vscode-github-actions",
         "github.copilot",
-        "ms-vscode.makefile-tools"
+        "ms-vscode.makefile-tools",
+        "shardulm94.trailing-spaces"
       ]
     }
   },
-  
+
   "forwardPorts": [],
-  
+
   "postCreateCommand": "make help && make versions",
-  
+
   "remoteUser": "vscode"
 }

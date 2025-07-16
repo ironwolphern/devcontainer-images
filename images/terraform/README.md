@@ -4,7 +4,7 @@ Optimized Docker image for Terraform and Infrastructure as Code development, inc
 
 ## Features
 
-- **Base**: Alpine Linux 3.20
+- **Base**: Alpine Linux 3.22
 - **User**: `terraform` (UID 1001, non-root)
 - **Working directory**: `/workspace`
 
@@ -12,7 +12,7 @@ Optimized Docker image for Terraform and Infrastructure as Code development, inc
 
 ### Core
 - Terraform 1.12.2
-- Terragrunt 0.67.16
+- Terragrunt 0.83.2
 
 ### Linting and Testing
 - TFLint

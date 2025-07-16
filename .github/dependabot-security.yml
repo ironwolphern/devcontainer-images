@@ -20,6 +20,10 @@ security-updates:
 ecosystems:
   - pip
   - github-actions
+  - docker
+  - docker-compose
+  - gomod
+  - terraform
 
 # Notifications configuration
 notifications:

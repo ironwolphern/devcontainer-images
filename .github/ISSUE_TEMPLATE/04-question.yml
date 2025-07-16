@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         Thanks for your interest in DevContainer images! Please search existing issues and discussions before creating a new question.
-        
+
         💡 **Quick tip**: Check our [documentation](https://github.com/ironwolphern/devcontainer-images/blob/main/README.md) and [discussions](https://github.com/ironwolphern/devcontainer-images/discussions) first.
 
   - type: textarea

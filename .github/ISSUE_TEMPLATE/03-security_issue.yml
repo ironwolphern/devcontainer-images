@@ -9,9 +9,9 @@ body:
     attributes:
       value: |
         # ⚠️ Security Issue Report
-        
+
         **IMPORTANT**: If this is a sensitive security vulnerability that could be exploited, please report it privately through [GitHub Security Advisories](https://github.com/ironwolphern/devcontainer-images/security/advisories/new) instead of creating a public issue.
-        
+
         Use this form only for general security concerns, configuration issues, or vulnerabilities that are already publicly known.
 
   - type: checkboxes

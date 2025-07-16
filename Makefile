@@ -6,14 +6,14 @@ TAG ?= latest
 IMAGES = ansible python terraform go
 
 # Version variables (can be overridden)
-PYTHON_VERSION ?= 3.12
+PYTHON_VERSION ?= 3.13
 ANSIBLE_VERSION ?= 11.7
-GO_VERSION ?= 1.23
-ALPINE_VERSION ?= 3.20
+GO_VERSION ?= 1.24
+ALPINE_VERSION ?= 3.22
 TERRAFORM_VERSION ?= 1.12.2
-TERRAGRUNT_VERSION ?= 0.67.16
-TFLINT_VERSION ?= 0.53.0
-CHECKOV_VERSION ?= 3.2.255
+TERRAGRUNT_VERSION ?= 0.83.2
+TFLINT_VERSION ?= 0.58.1
+CHECKOV_VERSION ?= 3.2.451
 TERRASCAN_VERSION ?= 0.2.3
 
 # Build arguments for each image
@@ -44,6 +44,7 @@ versions: ## Show current versions
 	@echo "  Terragrunt: $(TERRAGRUNT_VERSION)"
 	@echo "  TFLint:     $(TFLINT_VERSION)"
 	@echo "  Checkov:    $(CHECKOV_VERSION)"
+	@echo "  Terrascan:  $(TERRASCAN_VERSION)"
 
 # Build targets
 .PHONY: build-all
@@ -86,6 +87,7 @@ test-python: build-python ## Test Python image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) python --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) pytest --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) black --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) bandit --version
 
 .PHONY: test-terraform
 test-terraform: build-terraform ## Test Terraform image
@@ -93,13 +95,14 @@ test-terraform: build-terraform ## Test Terraform image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terraform version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terragrunt --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) tflint --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) checkov --version
 
 .PHONY: test-go
 test-go: build-go ## Test Go image
 	@echo "Testing Go image..."
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) go version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) golangci-lint --version
-	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gopls version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gosec -version
 
 # Push targets
 .PHONY: push-all

@@ -4,7 +4,7 @@ Optimized Docker image for Ansible development, including testing and linting to
 
 ## Features
 
-- **Base**: Python 3.12 slim
+- **Base**: Python 3.13 slim
 - **User**: `ansible` (UID 1001, non-root)
 - **Working directory**: `/workspace`
 
@@ -13,6 +13,14 @@ Optimized Docker image for Ansible development, including testing and linting to
 ### Core
 - Ansible >= 9.0.0
 - Ansible Core >= 2.16.0
+- Ansible Dev Tools >= 25.0.0
+
+### Infrastructure
+- Proxmoxer
+
+### Security
+- Hvac
+- Cryptography
 
 ### Testing and Quality
 - Ansible Lint
@@ -23,7 +31,7 @@ Optimized Docker image for Ansible development, including testing and linting to
 ### Utilities
 - Git, SSH client, curl
 - Jinja2, netaddr, requests
-- Cryptography
+- Docker
 
 ## Usage
 
@@ -54,9 +62,24 @@ services:
 
 ## Environment Variables
 
-- `ANSIBLE_HOST_KEY_CHECKING=False`
-- `ANSIBLE_STDOUT_CALLBACK=yaml`
-- `ANSIBLE_INVENTORY_UNPARSED_WARNING=False`
+- `ANSIBLE_STDOUT_CALLBACK=yaml` - Output formatting
+- `ANSIBLE_INVENTORY_UNPARSED_WARNING=False` - Suppress inventory warnings
+
+## Configuration
+
+For security reasons, sensitive Ansible configurations like `host_key_checking` are not set by default. 
+Create an `ansible.cfg` file in your project to configure Ansible settings.
+
+Example configuration:
+```ini
+[defaults]
+host_key_checking = False  # Only for development/testing
+stdout_callback = yaml
+inventory = ./inventory
+
+[ssh_connection]
+pipelining = True
+```
 
 ## Security
 
