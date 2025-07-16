@@ -13,7 +13,7 @@ This repository contains optimized Docker images that are automatically updated 
 | [Ansible](./images/ansible/) | Ansible 11.7 | Automation development environment | Ansible, ansible-dev-tools, ansible-lint, molecule, pytest |
 | [Python](./images/python/) | Python 3.13 | Complete Python development environment | pytest, black, flake8, bandit, fastapi, django |
 | [Terraform](./images/terraform/) | Terraform 1.12.2 | IaC development environment | Terraform, Terragrunt, TFLint, Checkov |
-| [Go](./images/go/) | Go 1.23 | Go development environment | gopls, golangci-lint, gosec, delve |
+| [Go](./images/go/) | Go 1.24 | Go development environment | gopls, golangci-lint, gosec, delve |
 
 ## 🚀 Quick Start
 
@@ -41,7 +41,7 @@ make run-python
 ```bash
 # Build with specific versions
 make build-python PYTHON_VERSION=3.13
-make build-go GO_VERSION=1.23
+make build-go GO_VERSION=1.24
 make build-terraform TERRAFORM_VERSION=1.12.2
 ```
 
@@ -93,16 +93,16 @@ Versions are parameterized and can be configured:
 
 ```bash
 export PYTHON_VERSION=3.13
-export GO_VERSION=1.23
+export GO_VERSION=1.24
 export TERRAFORM_VERSION=1.12.2
-export ALPINE_VERSION=3.20
+export ALPINE_VERSION=3.22
 ```
 
 ### Docker Build Args
 
 ```bash
 docker build --build-arg PYTHON_VERSION=3.13 -t my-python ./images/python
-docker build --build-arg GO_VERSION=1.23 -t my-go ./images/go
+docker build --build-arg GO_VERSION=1.24 -t my-go ./images/go
 ```
 
 ## 🛡️ Security and Quality

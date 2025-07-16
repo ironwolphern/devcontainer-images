@@ -4,7 +4,7 @@ Optimized Docker image for Ansible development, including testing and linting to
 
 ## Features
 
-- **Base**: Python 3.12 slim
+- **Base**: Python 3.13 slim
 - **User**: `ansible` (UID 1001, non-root)
 - **Working directory**: `/workspace`
 
@@ -13,6 +13,14 @@ Optimized Docker image for Ansible development, including testing and linting to
 ### Core
 - Ansible >= 9.0.0
 - Ansible Core >= 2.16.0
+- Ansible Dev Tools >= 25.0.0
+
+### Infrastructure
+- Proxmoxer
+
+### Security
+- Hvac
+- Cryptography
 
 ### Testing and Quality
 - Ansible Lint
@@ -23,7 +31,7 @@ Optimized Docker image for Ansible development, including testing and linting to
 ### Utilities
 - Git, SSH client, curl
 - Jinja2, netaddr, requests
-- Cryptography
+- Docker
 
 ## Usage
 

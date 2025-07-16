@@ -4,14 +4,14 @@ Complete Docker image for Python development with testing, linting and security 
 
 ## Features
 
-- **Base**: Python 3.12 slim
+- **Base**: Python 3.13 slim
 - **User**: `developer` (UID 1001, non-root)
 - **Working directory**: `/workspace`
 
 ## Included Tools
 
 ### Core
-- Python 3.12
+- Python 3.13
 - pip, setuptools, wheel
 
 ### Testing

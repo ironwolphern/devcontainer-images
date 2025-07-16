@@ -78,22 +78,22 @@ jobs:
         include:
           - image: ansible
             build_args: |
-              PYTHON_VERSION=3.12
+              PYTHON_VERSION=3.13
           - image: python
             build_args: |
-              PYTHON_VERSION=3.12
+              PYTHON_VERSION=3.13
           - image: terraform
             build_args: |
-              ALPINE_VERSION=3.20
+              ALPINE_VERSION=3.22
               TERRAFORM_VERSION=1.12.2
-              TERRAGRUNT_VERSION=0.67.16
-              TFLINT_VERSION=0.53.0
-              CHECKOV_VERSION=3.2.255
+              TERRAGRUNT_VERSION=0.83.2
+              TFLINT_VERSION=0.58.1
+              CHECKOV_VERSION=3.2.451
           - image: go
             build_args: |
-              GO_VERSION=1.23
-              ALPINE_VERSION=3.20
-    
+              GO_VERSION=1.24
+              ALPINE_VERSION=3.22
+
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -150,7 +150,7 @@ jobs:
       - name: 'Set up Python'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: 'Scan Python dependencies'
         run: |
@@ -168,7 +168,7 @@ jobs:
       - name: 'Set up Go'
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: 'Scan Go dependencies'
         run: |

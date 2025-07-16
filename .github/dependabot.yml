@@ -108,17 +108,111 @@ updates:
     commit-message:
       prefix: "chore(deps):"
       include: "scope"
-  # Maintain dependencies for Python
+
+  # Docker compose dependencies for DevContainer
+  - package-ecosystem: "docker-compose"
+    directory: "/.devcontainer"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:15"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "ironwolphern"
+    labels:
+      - "dependencies"
+      - "devcontainer"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
+  # Pip dependencies for Ansible
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/images/ansible"
     schedule:
       interval: "weekly"
-    assignees:
+      day: "monday"
+      time: "08:30"
+    open-pull-requests-limit: 3
+    reviewers:
       - "ironwolphern"
-  # Maintain dependencies for Docker
-  - package-ecosystem: "docker"
-    directory: "/"
+    labels:
+      - "dependencies"
+      - "python"
+      - "pip"
+      - "ansible"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
+  # Pip dependencies for Python
+  - package-ecosystem: "pip"
+    directory: "/images/python"
     schedule:
       interval: "weekly"
-    assignees:
+      day: "monday"
+      time: "08:45"
+    open-pull-requests-limit: 3
+    reviewers:
       - "ironwolphern"
+    labels:
+      - "dependencies"
+      - "python"
+      - "pip"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
+  # Pip dependencies for Terraform
+  - package-ecosystem: "pip"
+    directory: "/images/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "ironwolphern"
+    labels:
+      - "dependencies"
+      - "python"
+      - "pip"
+      - "terraform"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
+  # Gomod dependencies for Go
+  - package-ecosystem: "gomod"
+    directory: "/images/go"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:15"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "ironwolphern"
+    labels:
+      - "dependencies"
+      - "go"
+      - "gomod"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
+  # Terraform dependencies for Terraform
+  - package-ecosystem: "terraform"
+    directory: "/images/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "ironwolphern"
+    labels:
+      - "dependencies"
+      - "terraform"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
