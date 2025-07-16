@@ -40,7 +40,7 @@ RUN apk add --no-cache \
     bash=5.2.37-r0 \
     git=2.49.1-r0 \
     curl=8.14.1-r1 \
-    ca-certificates=20250619-r0	\
+    ca-certificates=20250619-r0 \
     openssh=10.0_p1-r7 \
     python3=3.12.11-r0 \
     py3-pip=25.1.1-r0 \
