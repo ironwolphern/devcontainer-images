@@ -8,7 +8,7 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 # Install build dependencies and tools
 RUN apk add --no-cache \
     git=2.49.1-r0 \
-    ca-certificates=20250619-r0	\
+    ca-certificates=20250619-r0 \
     gcc=14.2.0-r6 \
     musl-dev=1.2.5-r10	
 
