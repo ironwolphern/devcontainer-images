@@ -63,15 +63,18 @@ ENV TF_CLI_ARGS_apply="-no-color"
 
 WORKDIR /workspace
 
-# Change ownership and switch to non-root user
-RUN chown -R terraform:terraform /workspace
-USER terraform
+# Create Python virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python-based tools
+# Install Python packages in virtual environment
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir --break-system-packages \
-    -r requirements.txt \
+RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf requirements.txt
+
+# Change ownership and switch to non-root user
+RUN chown -R terraform:terraform /workspace /opt/venv
+USER terraform
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
