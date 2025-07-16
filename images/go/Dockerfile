@@ -32,7 +32,7 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 RUN apk add --no-cache \
     git=2.49.1-r0 \
     curl=8.14.1-r1 \
-    ca-certificates=20250619-r0	\
+    ca-certificates=20250619-r0 \
     bash=5.2.37-r0 \
     make=4.4.1-r3 \
     && update-ca-certificates
