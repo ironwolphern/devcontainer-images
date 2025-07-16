@@ -181,38 +181,3 @@ updates:
     commit-message:
       prefix: "chore(deps):"
       include: "scope"
-
-  # Gomod dependencies for Go
-  - package-ecosystem: "gomod"
-    directory: "/images/go"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:15"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "ironwolphern"
-    labels:
-      - "dependencies"
-      - "go"
-      - "gomod"
-    commit-message:
-      prefix: "chore(deps):"
-      include: "scope"
-
-  # Terraform dependencies for Terraform
-  - package-ecosystem: "terraform"
-    directory: "/images/terraform"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:30"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "ironwolphern"
-    labels:
-      - "dependencies"
-      - "terraform"
-    commit-message:
-      prefix: "chore(deps):"
-      include: "scope"
