@@ -6,7 +6,7 @@
 ## 🎯 Type of Change
 <!-- Mark the type of change -->
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
-- [ ] ✨ New feature (non-breaking change which adds functionality)  
+- [ ] ✨ New feature (non-breaking change which adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] 📚 Documentation update
 - [ ] 🔧 Configuration change
@@ -80,7 +80,7 @@ Related to #(issue number)
 
 ### For Maintainers
 - [ ] Code review completed
-- [ ] All CI checks passed  
+- [ ] All CI checks passed
 - [ ] Security review completed (if applicable)
 - [ ] Documentation updated
 - [ ] Ready to merge

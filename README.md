@@ -110,7 +110,7 @@ docker build --build-arg GO_VERSION=1.24 -t my-go ./images/go
 ### Automated Analysis
 
 - **Trivy**: Vulnerability scanning in images
-- **Grype**: Additional security analysis  
+- **Grype**: Additional security analysis
 - **Hadolint**: Dockerfile linting
 - **Safety**: Python dependency verification
 - **TruffleHog**: Secret detection
@@ -179,5 +179,5 @@ See [LICENSE](LICENSE) for more details.
 
 ---
 
-**Maintained by**: [@ironwolphern](https://github.com/ironwolphern)  
+**Maintained by**: [@ironwolphern](https://github.com/ironwolphern)
 **Last updated**: July 2025

@@ -87,6 +87,7 @@ test-python: build-python ## Test Python image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) python --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) pytest --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) black --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-python:$(TAG) bandit --version
 
 .PHONY: test-terraform
 test-terraform: build-terraform ## Test Terraform image
@@ -94,13 +95,14 @@ test-terraform: build-terraform ## Test Terraform image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terraform version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terragrunt --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) tflint --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) checkov --version
 
 .PHONY: test-go
 test-go: build-go ## Test Go image
 	@echo "Testing Go image..."
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) go version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) golangci-lint --version
-	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gopls version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gosec -version
 
 # Push targets
 .PHONY: push-all

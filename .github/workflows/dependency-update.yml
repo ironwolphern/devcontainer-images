@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       updates_available: ${{ steps.check.outputs.updates_available }}
-      
+
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           import re
           import json
           from packaging import version
-          
+
           def check_python_version():
               # Check latest Python version
               response = requests.get('https://api.github.com/repos/python/cpython/tags')
@@ -65,7 +65,7 @@ jobs:
                       if latest is None or version.parse(ver) > version.parse(latest):
                           latest = ver
               return latest
-          
+
           def check_go_version():
               # Check latest Go version
               response = requests.get('https://api.github.com/repos/golang/go/tags')
@@ -78,7 +78,7 @@ jobs:
                       if latest is None or version.parse(ver) > version.parse(latest):
                           latest = ver
               return latest
-          
+
           def check_terraform_version():
               # Check latest Terraform version
               response = requests.get('https://api.github.com/repos/hashicorp/terraform/tags')
@@ -91,21 +91,21 @@ jobs:
                       if latest is None or version.parse(ver) > version.parse(latest):
                           latest = ver
               return latest
-          
+
           # Check for updates
           updates = {}
           updates['python'] = check_python_version()
           updates['go'] = check_go_version()
           updates['terraform'] = check_terraform_version()
-          
+
           print(f"Latest versions found:")
           for tool, ver in updates.items():
               print(f"  {tool}: {ver}")
-          
+
           # Save to file for next step
           with open('updates.json', 'w') as f:
               json.dump(updates, f)
-          
+
           # Set output using environment file
           import os
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output_file:
@@ -123,7 +123,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-updates
     if: needs.check-updates.outputs.updates_available == 'true'
-    
+
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -144,18 +144,18 @@ jobs:
           python3 << 'EOF'
           import json
           import re
-          
+
           # Load updates
           with open('updates.json', 'r') as f:
               updates = json.load(f)
-          
+
           def update_dockerfile(path, pattern, replacement):
               try:
                   with open(path, 'r') as f:
                       content = f.read()
-                  
+
                   new_content = re.sub(pattern, replacement, content)
-                  
+
                   if new_content != content:
                       with open(path, 'w') as f:
                           f.write(new_content)
@@ -164,7 +164,7 @@ jobs:
                       print(f"No changes needed in {path}")
               except FileNotFoundError:
                   print(f"File not found: {path}")
-          
+
           # Update Python version
           if updates['python']:
               python_ver = updates['python']
@@ -179,7 +179,7 @@ jobs:
                   r'ARG PYTHON_VERSION=[\d.]+',
                   f'ARG PYTHON_VERSION={major_minor}'
               )
-          
+
           # Update Go version
           if updates['go']:
               go_ver = updates['go']
@@ -189,7 +189,7 @@ jobs:
                   r'ARG GO_VERSION=[\d.]+',
                   f'ARG GO_VERSION={major_minor}'
               )
-          
+
           # Update Terraform version
           if updates['terraform']:
               tf_ver = updates['terraform']
@@ -207,14 +207,14 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          
+
           git commit -m "chore: update base images and tool versions
-          
+
           - Update Python to latest stable version
-          - Update Go to latest stable version  
+          - Update Go to latest stable version
           - Update Terraform to latest stable version
           - Update Alpine to latest stable version
-          
+
           This is an automated update created by the dependency update workflow."
 
       - name: 'Push changes'
@@ -228,31 +228,31 @@ jobs:
           script: |
             const fs = require('fs');
             const updates = JSON.parse(fs.readFileSync('updates.json', 'utf8'));
-            
+
             const title = 'chore: update dependencies and base images';
             const body = `## 🔄 Automated Dependency Update
-            
+
             This PR updates the base images and tool versions to their latest stable releases:
-            
+
             ### 📦 Updated Versions
             - **Python**: ${updates.python || 'No update available'}
             - **Go**: ${updates.go || 'No update available'}
             - **Terraform**: ${updates.terraform || 'No update available'}
-            
+
             ### ✅ What's Included
             - Updated Dockerfile ARG variables
             - Maintained backward compatibility
             - All security best practices preserved
-            
+
             ### 🧪 Testing
             This PR will trigger the full CI/CD pipeline to ensure all images build and test successfully.
-            
+
             ### 🤖 Automation
             This PR was created automatically by the dependency update workflow.
             `;
-            
+
             const branchName = context.ref.replace('refs/heads/', '');
-            
+
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -267,7 +267,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-updates, create-update-pr]
     if: failure()
-    
+
     steps:
       - name: 'Create issue for failed update'
         uses: actions/github-script@v7
@@ -279,14 +279,14 @@ jobs:
               repo: context.repo.repo,
               title: '🚨 Automated dependency update failed',
               body: `## ❌ Dependency Update Failure
-              
+
               The automated dependency update workflow failed.
-              
+
               **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               **Triggered**: ${new Date().toISOString()}
-              
+
               Please check the workflow logs and update dependencies manually if needed.
-              
+
               ---
               *This issue was created automatically by the dependency update workflow.*`,
               labels: ['dependencies', 'automation', 'bug']
