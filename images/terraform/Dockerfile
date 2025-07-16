@@ -69,7 +69,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python packages in virtual environment
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN pip install --no-cache-dir --no-deps -r requirements.txt \
     && rm -rf requirements.txt
 
 # Change ownership and switch to non-root user
