@@ -10,7 +10,8 @@ RUN apk add --no-cache \
     git=2.49.1-r0 \
     ca-certificates=20250619-r0 \
     gcc=14.2.0-r6 \
-    musl-dev=1.2.5-r10
+    musl-dev=1.2.5-r10 \
+    binutils=2.44-r2
 
 WORKDIR /tmp
 
