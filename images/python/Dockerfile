@@ -24,7 +24,7 @@ RUN pip install --user --no-cache-dir -r requirements.txt
 ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim AS production
 
-# Install runtime dependencies
+# Install runtime dependencies and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git=1:2.* \
     curl=7.* \

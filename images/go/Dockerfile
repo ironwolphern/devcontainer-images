@@ -11,7 +11,8 @@ RUN apk add --no-cache \
     ca-certificates=20250619-r0 \
     gcc=14.2.0-r6 \
     musl-dev=1.2.5-r10 \
-    binutils=2.44-r2
+    binutils=2.44-r2 \
+    build-base=0.5-r3
 
 WORKDIR /tmp
 
@@ -29,7 +30,7 @@ ARG GO_VERSION=1.24
 ARG ALPINE_VERSION=3.22
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS production
 
-# Install runtime dependencies
+# Install runtime dependencies and tools
 RUN apk add --no-cache \
     git=2.49.1-r0 \
     curl=8.14.1-r1 \
