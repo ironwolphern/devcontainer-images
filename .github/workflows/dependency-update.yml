@@ -253,15 +253,34 @@ jobs:
 
             const branchName = context.ref.replace('refs/heads/', '');
 
-            git add .
-            if git diff --staged --quiet; then
-              echo "No changes to commit"
-              exit 0
-            fi
+            const { execSync } = require('child_process');
+
+            try {
+              execSync('git add .');
+              // Check if there are staged changes
+              try {
+                execSync('git diff --staged --quiet');
+                console.log('No changes to commit');
+                process.exit(0);
+              } catch {
+                // There are changes to commit; proceed with commit and PR creation
+              }
+            } catch (err) {
+              console.error('Error running git commands:', err);
+              process.exit(1);
+            }
 
             # Proceed with commit and PR creation only if there are changes
-            git commit -m "Update dependencies"
-            git push origin main
+            const { execSync } = require('child_process');
+
+            try {
+              execSync('git commit -m "Update dependencies"', { stdio: 'inherit' });
+              execSync('git push origin HEAD', { stdio: 'inherit' });
+              console.log('Successfully committed and pushed changes');
+            } catch (error) {
+              console.error('Error committing or pushing changes:', error);
+              process.exit(1);
+            }
 
             github.rest.pulls.create({
               owner: context.repo.owner,
