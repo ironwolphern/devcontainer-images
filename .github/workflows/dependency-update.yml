@@ -253,6 +253,16 @@ jobs:
 
             const branchName = context.ref.replace('refs/heads/', '');
 
+            git add .
+            if git diff --staged --quiet; then
+              echo "No changes to commit"
+              exit 0
+            fi
+
+            # Proceed with commit and PR creation only if there are changes
+            git commit -m "Update dependencies"
+            git push origin main
+
             github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
