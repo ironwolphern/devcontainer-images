@@ -224,7 +224,7 @@ jobs:
       - name: 'Create Pull Request'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const fs = require('fs');
             const updates = JSON.parse(fs.readFileSync('updates.json', 'utf8'));
