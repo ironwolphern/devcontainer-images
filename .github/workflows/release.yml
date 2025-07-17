@@ -81,8 +81,6 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ steps.version.outputs.version }}
-            type=raw,value={{major}}.{{minor}}
-            type=raw,value={{major}}
 
       - name: 'Build and push release image'
         uses: docker/build-push-action@v6
