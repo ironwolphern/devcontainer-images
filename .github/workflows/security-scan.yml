@@ -64,7 +64,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
+          base: ${{ github.event.before || github.event.repository.default_branch + '~1' }}   # Use the previous commit or default_branch~1
           head: HEAD
           extra_args: --debug --only-verified
 
@@ -185,7 +185,7 @@ jobs:
           go get github.com/go-delve/delve/cmd/dlv@latest
           go get honnef.co/go/tools/cmd/staticcheck@latest
           go get github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          go get github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          go get github.com/securego/gosec/v2/cmd/gosec@latest
 
           # Run vulnerability check
           govulncheck ./... || true
