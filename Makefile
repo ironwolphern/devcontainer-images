@@ -15,6 +15,7 @@ TERRAGRUNT_VERSION ?= 0.83.2
 TFLINT_VERSION ?= 0.58.1
 CHECKOV_VERSION ?= 3.2.451
 TERRASCAN_VERSION ?= 0.2.3
+COSIGN_VERSION ?= 2.5.3
 
 # Build arguments for each image
 ANSIBLE_BUILD_ARGS = --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
@@ -45,6 +46,7 @@ versions: ## Show current versions
 	@echo "  TFLint:     $(TFLINT_VERSION)"
 	@echo "  Checkov:    $(CHECKOV_VERSION)"
 	@echo "  Terrascan:  $(TERRASCAN_VERSION)"
+	@echo "  Cosign:     $(COSIGN_VERSION)"
 
 # Build targets
 .PHONY: build-all
@@ -181,3 +183,48 @@ run-terraform: build-terraform ## Run Terraform container interactively
 .PHONY: run-go
 run-go: build-go ## Run Go container interactively
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run -it --rm -v $(PWD):/workspace $(REGISTRY)/devcontainer-go:$(TAG)
+
+# Signature verification targets
+.PHONY: verify-signatures
+verify-signatures: ## Verify signatures of all images
+	@echo "🔍 Verificando firmas de todas las imágenes..."
+	@./scripts/verify-signatures.sh --all
+
+.PHONY: verify-signatures-with-sbom
+verify-signatures-with-sbom: ## Verify signatures and SBOM of all images
+	@echo "🔍 Verificando firmas y SBOM de todas las imágenes..."
+	@./scripts/verify-signatures.sh --all --sbom
+
+.PHONY: verify-ansible
+verify-ansible: ## Verify Ansible image signature
+	@echo "🔍 Verificando firma de imagen Ansible..."
+	@./scripts/verify-signatures.sh ansible
+
+.PHONY: verify-python
+verify-python: ## Verify Python image signature
+	@echo "🔍 Verificando firma de imagen Python..."
+	@./scripts/verify-signatures.sh python
+
+.PHONY: verify-terraform
+verify-terraform: ## Verify Terraform image signature
+	@echo "🔍 Verificando firma de imagen Terraform..."
+	@./scripts/verify-signatures.sh terraform
+
+.PHONY: verify-go
+verify-go: ## Verify Go image signature
+	@echo "🔍 Verificando firma de imagen Go..."
+	@./scripts/verify-signatures.sh go
+
+# Security audit targets
+.PHONY: security-audit
+security-audit: scan-all verify-signatures ## Complete security audit (scan + verify)
+	@echo "✅ Auditoría de seguridad completada"
+
+.PHONY: install-cosign
+install-cosign: ## Install Cosign (requires sudo)
+	@echo "📦 Instalando Cosign..."
+	@curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
+	@sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+	@sudo chmod +x /usr/local/bin/cosign
+	@cosign version
+	@echo "✅ Cosign instalado exitosamente"

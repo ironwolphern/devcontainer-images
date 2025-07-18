@@ -44,13 +44,13 @@ applyTo: "**/*.yml,**/*.yaml"
         - 'src/**'
         - 'tests/**'
         - 'package.json'
-  
+
   # Deploy solo en tags
   on:
     push:
       tags:
         - 'v*.*.*'
-  
+
   # Workflow manual con parámetros
   on:
     workflow_dispatch:
@@ -76,29 +76,29 @@ applyTo: "**/*.yml,**/*.yaml"
 - Ejemplo:
   ```yaml
   name: 'CI Pipeline'
-  
+
   on:
     push:
       branches: [ main ]
     pull_request:
       branches: [ main ]
-  
+
   env:
     NODE_VERSION: '18'
     CACHE_KEY: 'node-modules-v1'
-  
+
   jobs:
     test:
       name: 'Run Tests'
       runs-on: ubuntu-latest
-      
+
       steps:
         # Checkout del código fuente
         - name: 'Checkout code'
           uses: actions/checkout@v4
           with:
             fetch-depth: 0  # Necesario para análisis de calidad
-        
+
         # Configuración de Node.js con cache
         - name: 'Setup Node.js'
           uses: actions/setup-node@v4
@@ -120,7 +120,7 @@ applyTo: "**/*.yml,**/*.yaml"
     deploy:
       runs-on: ubuntu-latest
       environment: production  # Requiere aprobación manual
-      
+
       steps:
         - name: 'Deploy to AWS'
           env:
@@ -144,7 +144,7 @@ applyTo: "**/*.yml,**/*.yaml"
     pull-requests: write # Escribir comentarios en PRs
     checks: write       # Escribir check results
     security-events: write # Para security scanning
-  
+
   jobs:
     security-scan:
       runs-on: ubuntu-latest
@@ -152,7 +152,7 @@ applyTo: "**/*.yml,**/*.yaml"
         security-events: write
         actions: read
         contents: read
-      
+
       steps:
         - uses: actions/checkout@v4
         - name: 'Run CodeQL Analysis'
@@ -170,10 +170,10 @@ applyTo: "**/*.yml,**/*.yaml"
   steps:
     # ✅ Buena práctica - versión específica
     - uses: actions/checkout@v4.1.1
-    
+
     # ✅ Mejor práctica - hash SHA específico
     - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v4.0.6
-    
+
     # ❌ Evitar - versión flotante
     # - uses: actions/checkout@main
   ```
@@ -193,9 +193,9 @@ applyTo: "**/*.yml,**/*.yaml"
           node-version: [16, 18, 20]
           os: [ubuntu-latest, windows-latest, macos-latest]
         fail-fast: false  # No cancela otros jobs si uno falla
-      
+
       runs-on: ${{ matrix.os }}
-      
+
       steps:
         - uses: actions/checkout@v4
         - name: 'Setup Node.js ${{ matrix.node-version }}'
@@ -203,18 +203,18 @@ applyTo: "**/*.yml,**/*.yaml"
           with:
             node-version: ${{ matrix.node-version }}
             cache: 'npm'
-        
+
         - name: 'Install dependencies'
           run: npm ci
-        
+
         - name: 'Run tests'
           run: npm test
-  
+
     deploy:
       needs: test  # Solo ejecuta después de que test sea exitoso
       if: github.ref == 'refs/heads/main'
       runs-on: ubuntu-latest
-      
+
       steps:
         - name: 'Deploy application'
           run: echo "Deploying..."
@@ -228,7 +228,7 @@ applyTo: "**/*.yml,**/*.yaml"
   ```yaml
   steps:
     - uses: actions/checkout@v4
-    
+
     # Cache de dependencias de Node.js
     - name: 'Cache Node.js modules'
       uses: actions/cache@v3
@@ -237,7 +237,7 @@ applyTo: "**/*.yml,**/*.yaml"
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
-    
+
     # Cache de build artifacts
     - name: 'Cache build output'
       uses: actions/cache@v3
@@ -248,14 +248,14 @@ applyTo: "**/*.yml,**/*.yaml"
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-build-
-    
+
     # Cache de Docker layers
     - name: 'Setup Docker Buildx'
       uses: docker/setup-buildx-action@v3
       with:
         driver-opts: |
           image=moby/buildkit:buildx-stable-1
-    
+
     - name: 'Build and push Docker image'
       uses: docker/build-push-action@v5
       with:
@@ -275,10 +275,10 @@ applyTo: "**/*.yml,**/*.yaml"
   jobs:
     lint:
       runs-on: ubuntu-latest  # Rápido y económico para linting
-      
+
     test-unit:
       runs-on: ubuntu-latest
-      
+
     test-integration:
       runs-on: ubuntu-latest
       services:
@@ -291,10 +291,10 @@ applyTo: "**/*.yml,**/*.yaml"
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
-    
+
     build-windows:
       runs-on: windows-latest  # Solo cuando sea necesario
-      
+
     performance-test:
       runs-on: self-hosted  # Runner dedicado para tests de performance
       labels: [performance, high-memory]
@@ -309,13 +309,13 @@ applyTo: "**/*.yml,**/*.yaml"
 - Ejemplo:
   ```yaml
   name: 'Comprehensive Testing Pipeline'
-  
+
   on:
     push:
       branches: [ main, develop ]
     pull_request:
       branches: [ main ]
-  
+
   jobs:
     # Linting y formato
     lint:
@@ -326,11 +326,11 @@ applyTo: "**/*.yml,**/*.yaml"
           with:
             node-version: '18'
             cache: 'npm'
-        
+
         - run: npm ci
         - run: npm run lint
         - run: npm run format:check
-    
+
     # Tests unitarios
     unit-tests:
       runs-on: ubuntu-latest
@@ -340,16 +340,16 @@ applyTo: "**/*.yml,**/*.yaml"
           with:
             node-version: '18'
             cache: 'npm'
-        
+
         - run: npm ci
         - run: npm run test:unit -- --coverage
-        
+
         - name: 'Upload coverage reports'
           uses: codecov/codecov-action@v3
           with:
             token: ${{ secrets.CODECOV_TOKEN }}
             files: ./coverage/lcov.info
-    
+
     # Tests de integración
     integration-tests:
       runs-on: ubuntu-latest
@@ -364,7 +364,7 @@ applyTo: "**/*.yml,**/*.yaml"
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
-        
+
         redis:
           image: redis:7
           options: >-
@@ -372,20 +372,20 @@ applyTo: "**/*.yml,**/*.yaml"
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
-      
+
       steps:
         - uses: actions/checkout@v4
         - uses: actions/setup-node@v4
           with:
             node-version: '18'
             cache: 'npm'
-        
+
         - run: npm ci
         - run: npm run test:integration
           env:
             DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
             REDIS_URL: redis://localhost:6379
-    
+
     # Tests end-to-end
     e2e-tests:
       runs-on: ubuntu-latest
@@ -395,13 +395,13 @@ applyTo: "**/*.yml,**/*.yaml"
           with:
             node-version: '18'
             cache: 'npm'
-        
+
         - run: npm ci
         - run: npm run build
         - run: npm run start &
         - run: npx wait-on http://localhost:3000
         - run: npm run test:e2e
-        
+
         - name: 'Upload E2E test results'
           uses: actions/upload-artifact@v3
           if: always()
@@ -422,7 +422,7 @@ applyTo: "**/*.yml,**/*.yaml"
     quality-gate:
       runs-on: ubuntu-latest
       needs: [lint, unit-tests, integration-tests, security-scan]
-      
+
       steps:
         - name: 'Check quality metrics'
           run: |
@@ -431,15 +431,15 @@ applyTo: "**/*.yml,**/*.yaml"
               echo "Coverage below 80%"
               exit 1
             fi
-            
+
             # Verificar vulnerabilidades críticas
             if [ "${{ needs.security-scan.outputs.critical-vulns }}" -gt "0" ]; then
               echo "Critical vulnerabilities found"
               exit 1
             fi
-            
+
             echo "Quality gate passed"
-        
+
         - name: 'Update status'
           uses: actions/github-script@v6
           with:
@@ -467,35 +467,35 @@ applyTo: "**/*.yml,**/*.yaml"
       runs-on: ubuntu-latest
       environment: staging
       if: github.ref == 'refs/heads/develop'
-      
+
       steps:
         - uses: actions/checkout@v4
         - name: 'Deploy to staging'
           run: |
             echo "Deploying to staging environment"
             # Deploy script aquí
-    
+
     deploy-production:
       runs-on: ubuntu-latest
-      environment: 
+      environment:
         name: production
         url: https://myapp.com
       if: startsWith(github.ref, 'refs/tags/v')
       needs: [test, security-scan, build]
-      
+
       steps:
         - uses: actions/checkout@v4
-        
+
         - name: 'Deploy to production'
           run: |
             echo "Deploying version ${{ github.ref_name }} to production"
             # Deploy script aquí
-        
+
         - name: 'Health check'
           run: |
             sleep 30  # Esperar a que la aplicación se inicie
             curl -f https://myapp.com/health || exit 1
-        
+
         - name: 'Notify deployment success'
           uses: 8398a7/action-slack@v3
           with:
@@ -516,24 +516,24 @@ applyTo: "**/*.yml,**/*.yaml"
     deploy-with-rollback:
       runs-on: ubuntu-latest
       environment: production
-      
+
       steps:
         - uses: actions/checkout@v4
-        
+
         - name: 'Backup current version'
           id: backup
           run: |
             CURRENT_VERSION=$(curl -s https://api.myapp.com/version)
             echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
             echo "Backing up version: $CURRENT_VERSION"
-        
+
         - name: 'Deploy new version'
           id: deploy
           run: |
             echo "Deploying new version..."
             # Deploy script aquí
             echo "deploy_success=true" >> $GITHUB_OUTPUT
-        
+
         - name: 'Health check'
           id: health_check
           run: |
@@ -547,13 +547,13 @@ applyTo: "**/*.yml,**/*.yaml"
             done
             echo "health_check_passed=false" >> $GITHUB_OUTPUT
             exit 1
-        
+
         - name: 'Rollback on failure'
           if: failure() && steps.deploy.outputs.deploy_success == 'true'
           run: |
             echo "Rolling back to version: ${{ steps.backup.outputs.current_version }}"
             # Rollback script aquí
-        
+
         - name: 'Notify deployment result'
           if: always()
           uses: 8398a7/action-slack@v3
@@ -578,11 +578,11 @@ applyTo: "**/*.yml,**/*.yaml"
   ```yaml
   env:
     DEBUG: ${{ secrets.ACTIONS_STEP_DEBUG || 'false' }}
-  
+
   jobs:
     build:
       runs-on: ubuntu-latest
-      
+
       steps:
         - name: 'Debug information'
           if: env.DEBUG == 'true'
@@ -595,15 +595,15 @@ applyTo: "**/*.yml,**/*.yaml"
             echo "Commit SHA: ${{ github.sha }}"
             echo "Actor: ${{ github.actor }}"
             echo "::endgroup::"
-        
+
         - name: 'Build application'
           run: |
             echo "::group::Building Application"
             npm run build
             echo "::endgroup::"
-            
+
             echo "::notice::Build completed successfully"
-        
+
         - name: 'Error handling example'
           run: |
             if ! npm run test; then
@@ -624,22 +624,22 @@ applyTo: "**/*.yml,**/*.yaml"
   jobs:
     metrics:
       runs-on: ubuntu-latest
-      
+
       steps:
         - name: 'Collect build metrics'
           id: metrics
           run: |
             BUILD_START=$(date +%s)
-            
+
             # Build process
             npm run build
-            
+
             BUILD_END=$(date +%s)
             BUILD_DURATION=$((BUILD_END - BUILD_START))
-            
+
             echo "build_duration=$BUILD_DURATION" >> $GITHUB_OUTPUT
             echo "build_timestamp=$(date -Iseconds)" >> $GITHUB_OUTPUT
-        
+
         - name: 'Send metrics to monitoring system'
           run: |
             curl -X POST "https://monitoring.myapp.com/metrics" \
@@ -655,22 +655,22 @@ applyTo: "**/*.yml,**/*.yaml"
                   "workflow": "${{ github.workflow }}"
                 }
               }'
-        
+
         - name: 'Generate build report'
           run: |
             cat << EOF > build-report.md
             # Build Report
-            
+
             - **Repository**: ${{ github.repository }}
             - **Branch**: ${{ github.ref_name }}
             - **Commit**: ${{ github.sha }}
             - **Build Duration**: ${{ steps.metrics.outputs.build_duration }}s
             - **Timestamp**: ${{ steps.metrics.outputs.build_timestamp }}
-            
+
             ## Artifacts
             - Build artifacts uploaded to: \${{ steps.upload.outputs.artifact-url }}
             EOF
-        
+
         - name: 'Upload build report'
           uses: actions/upload-artifact@v3
           with:
@@ -689,7 +689,7 @@ applyTo: "**/*.yml,**/*.yaml"
   # .github/actions/setup-app/action.yml
   name: 'Setup Application Environment'
   description: 'Setup Node.js, install dependencies, and configure environment'
-  
+
   inputs:
     node-version:
       description: 'Node.js version'
@@ -703,12 +703,12 @@ applyTo: "**/*.yml,**/*.yaml"
       description: 'Whether to install dependencies'
       required: false
       default: 'true'
-  
+
   outputs:
     cache-hit:
       description: 'Whether cache was hit'
       value: ${{ steps.cache.outputs.cache-hit }}
-  
+
   runs:
     using: 'composite'
     steps:
@@ -717,19 +717,19 @@ applyTo: "**/*.yml,**/*.yaml"
         with:
           node-version: ${{ inputs.node-version }}
           cache: 'npm'
-      
+
       - name: 'Cache dependencies'
         id: cache
         uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ inputs.node-version }}-${{ inputs.cache-key }}-${{ hashFiles('**/package-lock.json') }}
-      
+
       - name: 'Install dependencies'
         if: inputs.install-dependencies == 'true' && steps.cache.outputs.cache-hit != 'true'
         shell: bash
         run: npm ci
-  
+
   # Uso de la composite action
   jobs:
     test:
@@ -751,7 +751,7 @@ applyTo: "**/*.yml,**/*.yaml"
   ```yaml
   # .github/workflows/reusable-ci.yml
   name: 'Reusable CI Workflow'
-  
+
   on:
     workflow_call:
       inputs:
@@ -771,48 +771,48 @@ applyTo: "**/*.yml,**/*.yaml"
           required: true
         CODECOV_TOKEN:
           required: false
-  
+
   jobs:
     ci:
       runs-on: ubuntu-latest
       environment: ${{ inputs.environment }}
-      
+
       steps:
         - uses: actions/checkout@v4
-        
+
         - name: 'Setup Node.js'
           uses: actions/setup-node@v4
           with:
             node-version: ${{ inputs.node-version }}
             cache: 'npm'
             registry-url: 'https://registry.npmjs.org'
-        
+
         - run: npm ci
           env:
             NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        
+
         - run: npm run lint
         - run: npm run test
-        
+
         - name: 'Upload coverage'
           if: secrets.CODECOV_TOKEN != ''
           uses: codecov/codecov-action@v3
           with:
             token: ${{ secrets.CODECOV_TOKEN }}
-        
+
         - name: 'E2E Tests'
           if: inputs.run-e2e-tests
           run: npm run test:e2e
-  
+
   # .github/workflows/main.yml - Uso del workflow reutilizable
   name: 'Main CI/CD Pipeline'
-  
+
   on:
     push:
       branches: [ main ]
     pull_request:
       branches: [ main ]
-  
+
   jobs:
     ci:
       uses: ./.github/workflows/reusable-ci.yml
@@ -839,7 +839,7 @@ applyTo: "**/*.yml,**/*.yaml"
       env:
         ACTIONS_STEP_DEBUG: ${{ secrets.ACTIONS_STEP_DEBUG }}
         ACTIONS_RUNNER_DEBUG: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
-      
+
       steps:
         - name: 'Debug context'
           run: |
@@ -850,24 +850,24 @@ applyTo: "**/*.yml,**/*.yaml"
             echo "Actor: ${{ github.actor }}"
             echo "Repository: ${{ github.repository }}"
             echo "::endgroup::"
-            
+
             echo "::group::Runner Context"
             echo "OS: ${{ runner.os }}"
             echo "Architecture: ${{ runner.arch }}"
             echo "Name: ${{ runner.name }}"
             echo "::endgroup::"
-        
+
         - name: 'Conditional debugging'
           if: ${{ github.event_name == 'workflow_dispatch' }}
           run: |
             echo "::debug::This is a debug message"
             echo "::notice::This is a notice message"
             echo "::warning::This is a warning message"
-        
+
         - name: 'Error handling with debugging'
           run: |
             set -x  # Enable bash debugging
-            
+
             if ! npm run build; then
               echo "::group::Debug Information"
               echo "Node version: $(node --version)"
@@ -879,7 +879,7 @@ applyTo: "**/*.yml,**/*.yaml"
               echo "Directory contents:"
               ls -la
               echo "::endgroup::"
-              
+
               echo "::error::Build failed with detailed debug info above"
               exit 1
             fi
@@ -894,7 +894,7 @@ applyTo: "**/*.yml,**/*.yaml"
   jobs:
     troubleshoot:
       runs-on: ubuntu-latest
-      
+
       steps:
         - name: 'Check for common issues'
           run: |
@@ -909,12 +909,12 @@ applyTo: "**/*.yml,**/*.yaml"
               echo "::endgroup::"
             fi
             echo "::endgroup::"
-            
+
             # Check memory usage
             echo "::group::Memory Check"
             free -h
             echo "::endgroup::"
-            
+
             # Check network connectivity
             echo "::group::Network Check"
             if ! ping -c 1 google.com > /dev/null 2>&1; then
@@ -923,7 +923,7 @@ applyTo: "**/*.yml,**/*.yaml"
               echo "Network connectivity OK"
             fi
             echo "::endgroup::"
-        
+
         - name: 'Verify environment setup'
           run: |
             echo "::group::Environment Verification"
@@ -933,14 +933,14 @@ applyTo: "**/*.yml,**/*.yaml"
             echo "Git: $(which git || echo 'not found')"
             echo "Docker: $(which docker || echo 'not found')"
             echo "::endgroup::"
-        
+
         - name: 'Check dependencies'
           run: |
             if [ -f "package.json" ]; then
               echo "::group::Package.json Analysis"
               jq '.dependencies // {}' package.json
               echo "::endgroup::"
-              
+
               if [ ! -f "package-lock.json" ]; then
                 echo "::warning::package-lock.json not found, this may cause dependency issues"
               fi
@@ -958,7 +958,7 @@ applyTo: "**/*.yml,**/*.yaml"
   jobs:
     audit:
       runs-on: ubuntu-latest
-      
+
       steps:
         - name: 'Audit log entry'
           run: |
@@ -976,22 +976,22 @@ applyTo: "**/*.yml,**/*.yaml"
             }
             EOF
             )
-            
+
             echo "::notice::Audit log: $AUDIT_LOG"
-            
+
             # Send to audit system
             curl -X POST "https://audit.company.com/logs" \
               -H "Authorization: Bearer ${{ secrets.AUDIT_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d "$AUDIT_LOG"
-        
+
         - name: 'Compliance checks'
           run: |
             # Check for required approvals
             if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
               PR_NUMBER=$(gh pr list --state merged --limit 1 --json number --jq '.[0].number')
               APPROVALS=$(gh pr view $PR_NUMBER --json reviews --jq '[.reviews[] | select(.state == "APPROVED")] | length')
-              
+
               if [ "$APPROVALS" -lt "2" ]; then
                 echo "::error::Insufficient approvals for main branch push"
                 exit 1
@@ -999,7 +999,7 @@ applyTo: "**/*.yml,**/*.yaml"
             fi
           env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
         - name: 'Generate compliance report'
           run: |
             cat << EOF > compliance-report.json
@@ -1024,7 +1024,7 @@ applyTo: "**/*.yml,**/*.yaml"
               }
             }
             EOF
-        
+
         - name: 'Upload compliance report'
           uses: actions/upload-artifact@v3
           with:
@@ -1046,43 +1046,161 @@ applyTo: "**/*.yml,**/*.yaml"
         security-events: write
         actions: read
         contents: read
-      
+
       steps:
         - uses: actions/checkout@v4
-        
+
         - name: 'Dependency vulnerability scan'
           run: |
             npm audit --audit-level=high
             npm audit fix --dry-run
-        
+
         - name: 'SAST with CodeQL'
           uses: github/codeql-action/init@v2
           with:
             languages: javascript
             queries: security-and-quality
-        
+
         - name: 'Build for analysis'
           run: npm run build
-        
+
         - name: 'Perform CodeQL Analysis'
           uses: github/codeql-action/analyze@v2
-        
+
         - name: 'Container image scanning'
           uses: anchore/scan-action@v3
           with:
             image: "myapp:${{ github.sha }}"
             fail-build: true
             severity-cutoff: high
-        
+
         - name: 'Upload Anchore scan SARIF report'
           uses: github/codeql-action/upload-sarif@v2
           with:
             sarif_file: results.sarif
-        
+
         - name: 'Secret scanning'
           uses: trufflesecurity/trufflehog@v3.63.2-beta
           with:
             path: ./
             base: main
             head: HEAD
+
+### 9.3 Image Signing with Cosign
+- Implementa firma automática de imágenes de contenedor
+- Usa keyless signing con OIDC para mayor seguridad
+- Verifica firmas antes del deployment
+- Ejemplo:
+  ```yaml
+  jobs:
+    build-and-sign:
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        packages: write
+        id-token: write  # Necesario para keyless signing
+
+      steps:
+        - name: 'Checkout code'
+          uses: actions/checkout@v4
+
+        - name: 'Set up Docker Buildx'
+          uses: docker/setup-buildx-action@v3
+
+        - name: 'Login to registry'
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: 'Install Cosign'
+          uses: sigstore/cosign-installer@v3
+          with:
+            cosign-release: 'v2.4.0'
+
+        - name: 'Build image'
+          uses: docker/build-push-action@v6
+          id: build
+          with:
+            push: true
+            tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+
+        - name: 'Sign image with keyless'
+          env:
+            COSIGN_EXPERIMENTAL: 1
+          run: |
+            cosign sign --yes ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+
+        - name: 'Generate SBOM'
+          run: |
+            cosign download sbom ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }} || \
+            syft ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }} -o spdx-json=sbom.spdx.json
+
+        - name: 'Attest SBOM'
+          env:
+            COSIGN_EXPERIMENTAL: 1
+          run: |
+            cosign attest --yes --predicate sbom.spdx.json --type spdxjson \
+              ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+
+        - name: 'Verify signature'
+          env:
+            COSIGN_EXPERIMENTAL: 1
+          run: |
+            cosign verify \
+              --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+              --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+              ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+  ```
+
+### 9.4 Policy Enforcement
+- Configura políticas de verificación para deployment
+- Ejemplo de política para Kubernetes:
+  ```yaml
+  # cosign-policy.yaml
+  apiVersion: v1alpha1
+  kind: ClusterImagePolicy
+  metadata:
+    name: require-signed-images
+  spec:
+    images:
+    - glob: "ghcr.io/${{ github.repository }}/*"
+    authorities:
+    - keyless:
+        url: "https://fulcio.sigstore.dev"
+        identities:
+        - issuer: "https://token.actions.githubusercontent.com"
+          subject: "https://github.com/${{ github.repository }}/*"
+  ```
+
+  ```yaml
+  # Deployment workflow con verificación
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-sign
+
+    steps:
+      - name: 'Install Cosign'
+        uses: sigstore/cosign-installer@v3
+
+      - name: 'Verify image signature before deploy'
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          cosign verify \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            ghcr.io/${{ github.repository }}:${{ github.sha }} || {
+              echo "❌ Image signature verification failed"
+              exit 1
+            }
+          echo "✅ Image signature verified successfully"
+
+      - name: 'Deploy verified image'
+        run: |
+          kubectl set image deployment/myapp \
+            container=ghcr.io/${{ github.repository }}:${{ github.sha }}
   ```

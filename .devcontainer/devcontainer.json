@@ -45,7 +45,8 @@
         "github.vscode-github-actions",
         "github.copilot",
         "ms-vscode.makefile-tools",
-        "shardulm94.trailing-spaces"
+        "shardulm94.trailing-spaces",
+        "me-dutour-mathieu.vscode-github-actions"
       ]
     }
   },
