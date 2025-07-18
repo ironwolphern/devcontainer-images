@@ -42,6 +42,7 @@ permissions:
   packages: write
   security-events: write
   actions: read
+  id-token: write  # Necesario para keyless signing con Cosign
 
 jobs:
   detect-changes:
@@ -170,9 +171,16 @@ jobs:
             echo "build=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: 'Set up QEMU'
+        uses: docker/setup-qemu-action@v3
+
       - name: 'Set up Docker Buildx'
         if: steps.should_build.outputs.build == 'true'
         uses: docker/setup-buildx-action@v3
+
+      - name: 'Install Cosign'
+        if: steps.should_build.outputs.build == 'true'
+        uses: sigstore/cosign-installer@v3
 
       - name: 'Login to Container Registry'
         if: steps.should_build.outputs.build == 'true'
@@ -259,6 +267,7 @@ jobs:
           steps.should_build.outputs.build == 'true' &&
           (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
         uses: docker/build-push-action@v6
+        id: push
         with:
           context: ./images/${{ matrix.image }}
           platforms: linux/amd64,linux/arm64
@@ -268,6 +277,95 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
+
+      - name: 'Sign image with Cosign'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔐 Firmando imagen con Cosign..."
+
+          # Firmar todas las tags generadas
+          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'); do
+            if [[ -n "$tag" && "$tag" != " " ]]; then
+              echo "📝 Firmando: $tag"
+              cosign sign --yes "$tag" || {
+                echo "❌ Error firmando $tag"
+                exit 1
+              }
+            fi
+          done
+
+          # Si hay un digest específico, firmarlo también
+          if [[ -n "${{ steps.push.outputs.digest }}" ]]; then
+            IMAGE_WITH_DIGEST="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}@${{ steps.push.outputs.digest }}"
+            echo "📝 Firmando con digest: $IMAGE_WITH_DIGEST"
+            cosign sign --yes "$IMAGE_WITH_DIGEST"
+          fi
+
+          echo "✅ Imagen firmada exitosamente"
+
+      - name: 'Generate and attest SBOM'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "📋 Generando SBOM..."
+
+          # Instalar syft si no está disponible
+          if ! command -v syft &> /dev/null; then
+            curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          fi
+
+          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+
+          # Generar SBOM
+          syft "$IMAGE_REF" -o spdx-json=sbom-${{ matrix.image }}.spdx.json
+
+          # Atestar SBOM
+          echo "🔗 Atestando SBOM..."
+          cosign attest --yes --predicate sbom-${{ matrix.image }}.spdx.json --type spdxjson "$IMAGE_REF"
+
+          echo "✅ SBOM generado y atestado"
+
+      - name: 'Verify image signature'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔍 Verificando firmas de la imagen..."
+
+          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+
+          # Verificar firma
+          cosign verify \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "$IMAGE_REF" || {
+              echo "❌ Verificación de firma fallida"
+              exit 1
+            }
+
+          echo "✅ Firma verificada exitosamente"
+
+          # Verificar SBOM
+          echo "🔍 Verificando SBOM..."
+          cosign verify-attestation \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            --type spdxjson \
+            "$IMAGE_REF" || {
+              echo "❌ Verificación de SBOM fallida"
+              exit 1
+            }
+
+          echo "✅ SBOM verificado exitosamente"
 
   integration-tests:
     name: 'Integration Tests'

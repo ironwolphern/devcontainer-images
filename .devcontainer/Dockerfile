@@ -2,7 +2,7 @@
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
-# Install development dependencies
+# Install development dependencies and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl=8.* \
     git=1:2.* \
@@ -22,7 +22,14 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -L -o /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 \
     && chmod +x /usr/local/bin/hadolint
 
+# Install Cosign for container image signing and verification
+RUN curl -L -o /usr/local/bin/cosign "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64" \
+    && chmod +x /usr/local/bin/cosign
+
 # Add vscode user to docker group (user already exists in base image)
 RUN usermod -aG docker vscode || true
 
 USER vscode
+
+# Configure GPG for the vscode user in runtime
+RUN echo "export GPG_TTY=$(tty)" >> /home/vscode/.zshrc

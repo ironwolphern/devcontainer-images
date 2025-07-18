@@ -23,6 +23,7 @@ permissions:
   security-events: write
   actions: read
   issues: write
+  id-token: write  # Necesario para verificación de firmas
 
 jobs:
   dockerfile-security:
@@ -97,6 +98,9 @@ jobs:
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
+
+      - name: 'Set up QEMU'
+        uses: docker/setup-qemu-action@v3
 
       - name: 'Set up Docker Buildx'
         uses: docker/setup-buildx-action@v3
@@ -202,10 +206,10 @@ jobs:
             safety-results-*.json
             govulncheck-results.json
 
-  security-report:
-    name: 'Generate Security Report'
+  summary:
+    name: 'Security Scan Summary'
     runs-on: ubuntu-latest
-    needs: [dockerfile-security, secrets-scan, vulnerability-scan, dependency-scan]
+    needs: [dockerfile-security, secrets-scan, vulnerability-scan, dependency-scan, signature-verification]
     if: always()
 
     steps:
@@ -266,6 +270,7 @@ jobs:
             - Secrets Scan: ${{ needs.secrets-scan.result }}
             - Vulnerability Scan: ${{ needs.vulnerability-scan.result }}
             - Dependency Scan: ${{ needs.dependency-scan.result }}
+            - Signature Verification: ${{ needs.signature-verification.result }}
 
             ---
             *This issue was created automatically by the security scan workflow.*
@@ -278,3 +283,151 @@ jobs:
               body: body,
               labels: ['security', 'critical', 'automation']
             });
+
+  signature-verification:
+    name: 'Image Signature Verification'
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event_name == 'schedule'
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Install Cosign'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.0'
+
+      - name: 'Verify image signatures'
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔍 Verificando firmas de imágenes publicadas..."
+
+          REGISTRY="ghcr.io"
+          REPOSITORY="${{ github.repository }}"
+          IMAGES=("ansible" "python" "terraform" "go")
+          TAGS=("latest")
+
+          # Si hay releases, también verificar la última versión
+          if git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -1; then
+            LATEST_TAG=$(git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)
+            TAGS+=("${LATEST_TAG#v}")
+          fi
+
+          FAILED_VERIFICATIONS=()
+          SUCCESSFUL_VERIFICATIONS=()
+
+          for image in "${IMAGES[@]}"; do
+            for tag in "${TAGS[@]}"; do
+              IMAGE_REF="${REGISTRY}/${REPOSITORY}/devcontainer-${image}:${tag}"
+
+              echo "🔍 Verificando: $IMAGE_REF"
+
+              # Verificar que la imagen existe
+              if docker manifest inspect "$IMAGE_REF" >/dev/null 2>&1; then
+                # Verificar firma
+                if cosign verify \
+                  --certificate-identity-regexp="^https://github.com/${REPOSITORY}" \
+                  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+                  "$IMAGE_REF" >/dev/null 2>&1; then
+
+                  echo "✅ Firma verificada: ${image}:${tag}"
+                  SUCCESSFUL_VERIFICATIONS+=("${image}:${tag}")
+
+                  # Verificar SBOM
+                  if cosign verify-attestation \
+                    --certificate-identity-regexp="^https://github.com/${REPOSITORY}" \
+                    --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+                    --type spdxjson \
+                    "$IMAGE_REF" >/dev/null 2>&1; then
+                    echo "✅ SBOM verificado: ${image}:${tag}"
+                  else
+                    echo "⚠️ SBOM no encontrado o inválido: ${image}:${tag}"
+                  fi
+
+                else
+                  echo "❌ Verificación de firma fallida: ${image}:${tag}"
+                  FAILED_VERIFICATIONS+=("${image}:${tag}")
+                fi
+              else
+                echo "⚠️ Imagen no encontrada: $IMAGE_REF"
+              fi
+            done
+          done
+
+          # Generar reporte
+          echo ""
+          echo "=========================================="
+          echo "📊 REPORTE DE VERIFICACIÓN DE FIRMAS"
+          echo "=========================================="
+          echo "✅ Verificaciones exitosas: ${#SUCCESSFUL_VERIFICATIONS[@]}"
+          for success in "${SUCCESSFUL_VERIFICATIONS[@]}"; do
+            echo "  - $success"
+          done
+
+          echo ""
+          echo "❌ Verificaciones fallidas: ${#FAILED_VERIFICATIONS[@]}"
+          for failure in "${FAILED_VERIFICATIONS[@]}"; do
+            echo "  - $failure"
+          done
+
+          # Crear artifact con el reporte
+          echo "successful_verifications=${#SUCCESSFUL_VERIFICATIONS[@]}" >> verification_report.txt
+          echo "failed_verifications=${#FAILED_VERIFICATIONS[@]}" >> verification_report.txt
+          printf '%s\n' "${SUCCESSFUL_VERIFICATIONS[@]}" > successful_verifications.txt
+          printf '%s\n' "${FAILED_VERIFICATIONS[@]}" > failed_verifications.txt
+
+          # Fallar el job si hay verificaciones fallidas críticas
+          if [[ ${#FAILED_VERIFICATIONS[@]} -gt 0 ]]; then
+            echo "::error::Se encontraron ${#FAILED_VERIFICATIONS[@]} verificaciones de firma fallidas"
+            exit 1
+          fi
+
+          echo "✅ Todas las firmas verificadas exitosamente"
+
+      - name: 'Upload verification results'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: signature-verification-results
+          path: |
+            verification_report.txt
+            successful_verifications.txt
+            failed_verifications.txt
+          retention-days: 30
+
+      - name: 'Create signature verification summary'
+        if: always()
+        run: |
+          echo "## 🔐 Verificación de Firmas de Imágenes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -f verification_report.txt ]]; then
+            SUCCESSFUL=$(grep "successful_verifications=" verification_report.txt | cut -d'=' -f2)
+            FAILED=$(grep "failed_verifications=" verification_report.txt | cut -d'=' -f2)
+
+            echo "| Estado | Cantidad |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Exitosas | $SUCCESSFUL |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Fallidas | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [[ -f successful_verifications.txt && -s successful_verifications.txt ]]; then
+              echo "### ✅ Verificaciones Exitosas" >> $GITHUB_STEP_SUMMARY
+              while read -r line; do
+                echo "- $line" >> $GITHUB_STEP_SUMMARY
+              done < successful_verifications.txt
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            if [[ -f failed_verifications.txt && -s failed_verifications.txt ]]; then
+              echo "### ❌ Verificaciones Fallidas" >> $GITHUB_STEP_SUMMARY
+              while read -r line; do
+                echo "- $line" >> $GITHUB_STEP_SUMMARY
+              done < failed_verifications.txt
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "**Fecha de verificación:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY

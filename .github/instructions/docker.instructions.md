@@ -773,7 +773,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -980,43 +980,91 @@ secrets:
 
 ---
 
-## Checklist de Mejores Prácticas
+## 12. **Firma de Imágenes con Cosign**
 
-### ✅ Dockerfile
-- [ ] Usar imágenes base oficiales y específicas
-- [ ] Implementar multi-stage builds
-- [ ] Optimizar orden de instrucciones para cache
-- [ ] Crear usuario no-root
-- [ ] Incluir health checks
-- [ ] Minimizar layers innecesarios
-- [ ] Limpiar cache de paquetes
-- [ ] Usar .dockerignore
+### 12.1 Configuración de Cosign
+```yaml
+# En GitHub Actions
+- name: 'Install Cosign'
+  uses: sigstore/cosign-installer@v3
+  with:
+    cosign-release: 'v2.4.0'
 
-### ✅ Docker Compose
-- [ ] Usar variables de entorno
-- [ ] Implementar health checks
-- [ ] Configurar redes apropiadas
-- [ ] Usar secrets para datos sensibles
-- [ ] Configurar límites de recursos
-- [ ] Separar archivos por entorno
-- [ ] Implementar dependencias correctas
+- name: 'Sign container image'
+  env:
+    COSIGN_EXPERIMENTAL: 1
+  run: |
+    cosign sign --yes ${{ env.REGISTRY }}/image:tag
+```
 
-### ✅ Seguridad
-- [ ] Escanear imágenes por vulnerabilidades
-- [ ] No ejecutar como root
-- [ ] Usar secrets management
-- [ ] Validar imágenes base
-- [ ] Implementar least privilege
-- [ ] Configurar network policies
+### 12.2 Keyless Signing (Recomendado)
+```dockerfile
+# No requiere gestión de claves privadas
+# Usa OIDC tokens de GitHub/otros proveedores
+ENV COSIGN_EXPERIMENTAL=1
 
-## Recursos Adicionales
+# Firma automática en CI/CD
+RUN cosign sign --yes $REGISTRY/$IMAGE:$TAG
+```
 
-- [Docker Best Practices](https://docs.docker.com/develop/best-practices/)
-- [Docker Compose Specification](https://docs.docker.com/compose/compose-file/)
-- [Hadolint - Dockerfile Linter](https://github.com/hadolint/hadolint)
-- [Dive - Image Layer Explorer](https://github.com/wagoodman/dive)
-- [Trivy - Vulnerability Scanner](https://github.com/aquasecurity/trivy)
+### 12.3 Verificación de Firmas
+```bash
+# Verificar firma keyless
+cosign verify --certificate-identity-regexp=".*@example\.com" \
+               --certificate-oidc-issuer="https://github.com/login/oauth" \
+               registry.com/image:tag
 
----
+# Verificar con política
+cosign verify --policy policy.yaml registry.com/image:tag
+```
 
-*Última actualización: Junio 2025*
+### 12.4 Política de Cosign
+```yaml
+# policy.yaml
+apiVersion: v1alpha1
+kind: ClusterImagePolicy
+metadata:
+  name: signed-images-policy
+spec:
+  images:
+  - glob: "ghcr.io/myorg/*"
+  authorities:
+  - keyless:
+      url: "https://fulcio.sigstore.dev"
+      identities:
+      - issuer: "https://github.com/login/oauth"
+        subject: "https://github.com/myorg/*"
+```
+
+### 12.5 Integración en Dockerfile
+```dockerfile
+# Multi-stage build con firma
+FROM alpine:3.22 AS base
+# ... build steps ...
+
+FROM scratch AS signed
+COPY --from=base /app /app
+# Las firmas se añaden después del build via CI/CD
+```
+
+### 12.6 Verificación en Runtime
+```bash
+#!/bin/bash
+# verify-image.sh
+set -e
+
+IMAGE="$1"
+EXPECTED_IDENTITY="$2"
+
+echo "🔍 Verificando firma de imagen: $IMAGE"
+
+cosign verify \
+  --certificate-identity="$EXPECTED_IDENTITY" \
+  --certificate-oidc-issuer="https://github.com/login/oauth" \
+  "$IMAGE" || {
+    echo "❌ Verificación de firma fallida para $IMAGE"
+    exit 1
+  }
+
+echo "✅ Imagen verificada correctamente: $IMAGE"
+```

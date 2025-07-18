@@ -69,3 +69,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Default command
 CMD ["/bin/bash"]
+
+# Configure GPG for the gopher user in runtime
+RUN echo "export GPG_TTY=$(tty)" >> /home/gopher/.bashrc
