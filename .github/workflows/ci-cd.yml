@@ -199,8 +199,10 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix=${{ github.ref_name }}-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
 
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
@@ -321,7 +323,7 @@ jobs:
             curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
           fi
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.sha }}"
 
           # Generar SBOM
           syft "$IMAGE_REF" -o spdx-json=sbom-${{ matrix.image }}.spdx.json
@@ -341,7 +343,7 @@ jobs:
         run: |
           echo "🔍 Verificando firmas de la imagen..."
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.sha }}"
 
           # Verificar firma
           cosign verify \
