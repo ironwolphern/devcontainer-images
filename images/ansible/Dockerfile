@@ -60,5 +60,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Default command
 CMD ["/bin/bash"]
 
-# Configure GPG for the vscode user in runtime
-RUN echo 'export GPG_TTY=$(tty)' >> /home/vscode/.bashrc
+# Configure GPG for the ansible user in runtime
+RUN echo 'export GPG_TTY=$(tty)' >> /home/ansible/.bashrc
