@@ -3,6 +3,7 @@
 [![CI/CD Pipeline](https://github.com/ironwolphern/devcontainer-images/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/ci-cd.yml)
 [![Security Scan](https://github.com/ironwolphern/devcontainer-images/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/security-scan.yml)
 [![Dependency Update](https://github.com/ironwolphern/devcontainer-images/actions/workflows/dependency-update.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/dependency-update.yml)
+[![Image Signatures](https://github.com/ironwolphern/devcontainer-images/actions/workflows/verify-signatures.yml/badge.svg)](https://github.com/ironwolphern/devcontainer-images/actions/workflows/verify-signatures.yml)
 
 This repository contains optimized Docker images that are automatically updated for development with different technologies and programming languages.
 
@@ -123,6 +124,26 @@ docker build --build-arg GO_VERSION=1.24 -t my-go ./images/go
 - ✅ **Automated security analysis**
 - ✅ **Fixed dependency versions**
 - ✅ **Verified official base images**
+- ✅ **Signed images with Cosign**
+- ✅ **SBOM (Software Bill of Materials)**
+
+### 🔐 Image Signing and Verification
+
+All images are signed with [Cosign](https://docs.sigstore.dev/cosign/overview/) using keyless signing:
+
+```bash
+# Verify image signature
+export COSIGN_EXPERIMENTAL=1
+cosign verify \
+  --certificate-identity-regexp="^https://github.com/ironwolphern/devcontainer-images" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  ghcr.io/ironwolphern/devcontainer-images/devcontainer-python:latest
+
+# Use our verification script
+./scripts/verify-signatures.sh --all --sbom
+```
+
+📚 **[Complete Cosign Documentation →](docs/COSIGN_SIGNING.md)**
 
 ## 📚 DevContainer Support
 
