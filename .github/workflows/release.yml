@@ -20,6 +20,7 @@ permissions:
   contents: write
   packages: write
   security-events: write
+  id-token: write  # Necesario para keyless signing con Cosign
 
 jobs:
   release:
@@ -51,8 +52,16 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
 
+      - name: 'Set up QEMU'
+        uses: docker/setup-qemu-action@v3
+
       - name: 'Set up Docker Buildx'
         uses: docker/setup-buildx-action@v3
+
+      - name: 'Install Cosign'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.0'
 
       - name: 'Login to Container Registry'
         uses: docker/login-action@v3
@@ -84,6 +93,7 @@ jobs:
 
       - name: 'Build and push release image'
         uses: docker/build-push-action@v6
+        id: build
         with:
           context: ./images/${{ matrix.image }}
           platforms: linux/amd64,linux/arm64
@@ -93,6 +103,56 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
+
+      - name: 'Sign release image with Cosign'
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔐 Firmando imagen de release con Cosign..."
+
+          # Firmar todas las tags (latest y version)
+          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'); do
+            if [[ -n "$tag" && "$tag" != " " ]]; then
+              echo "📝 Firmando release: $tag"
+              cosign sign --yes "$tag" || {
+                echo "❌ Error firmando $tag"
+                exit 1
+              }
+            fi
+          done
+
+          # Firmar con el digest específico si está disponible
+          if [[ -n "${{ steps.build.outputs.digest }}" ]]; then
+            IMAGE_WITH_DIGEST="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}@${{ steps.build.outputs.digest }}"
+            echo "📝 Firmando con digest: $IMAGE_WITH_DIGEST"
+            cosign sign --yes "$IMAGE_WITH_DIGEST"
+          fi
+
+          echo "✅ Imagen de release firmada exitosamente"
+
+      - name: 'Generate and attest release SBOM'
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "📋 Generando SBOM para release..."
+
+          # Instalar syft si no está disponible
+          if ! command -v syft &> /dev/null; then
+            curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          fi
+
+          LATEST_IMAGE="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:latest"
+          VERSION_IMAGE="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.version.outputs.version }}"
+
+          # Generar SBOM para la imagen versionada
+          syft "$VERSION_IMAGE" -o spdx-json=sbom-release-${{ matrix.image }}.spdx.json
+
+          # Atestar SBOM para ambas tags
+          echo "🔗 Atestando SBOM para release..."
+          cosign attest --yes --predicate sbom-release-${{ matrix.image }}.spdx.json --type spdxjson "$VERSION_IMAGE"
+          cosign attest --yes --predicate sbom-release-${{ matrix.image }}.spdx.json --type spdxjson "$LATEST_IMAGE"
+
+          echo "✅ SBOM de release generado y atestado"
 
       - name: 'Run security scan'
         uses: aquasecurity/trivy-action@master
@@ -105,6 +165,48 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-${{ matrix.image }}-${{ steps.version.outputs.version }}.sarif'
+
+      - name: 'Verify release signatures'
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔍 Verificando firmas de release..."
+
+          LATEST_IMAGE="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:latest"
+          VERSION_IMAGE="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.version.outputs.version }}"
+
+          # Verificar firma de la imagen versionada
+          echo "🔍 Verificando imagen versionada: $VERSION_IMAGE"
+          cosign verify \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "$VERSION_IMAGE" || {
+              echo "❌ Verificación de firma fallida para $VERSION_IMAGE"
+              exit 1
+            }
+
+          # Verificar firma de latest
+          echo "🔍 Verificando imagen latest: $LATEST_IMAGE"
+          cosign verify \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "$LATEST_IMAGE" || {
+              echo "❌ Verificación de firma fallida para $LATEST_IMAGE"
+              exit 1
+            }
+
+          # Verificar SBOM
+          echo "🔍 Verificando SBOM..."
+          cosign verify-attestation \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            --type spdxjson \
+            "$VERSION_IMAGE" || {
+              echo "❌ Verificación de SBOM fallida para $VERSION_IMAGE"
+              exit 1
+            }
+
+          echo "✅ Todas las firmas y SBOM verificadas exitosamente para ${{ matrix.image }}"
 
   create-release:
     name: 'Create GitHub Release'
@@ -138,6 +240,34 @@ jobs:
           All images are available with the following tags:
           - \`latest\`
           - \`${{ steps.version.outputs.version }}\`
+
+          ## 🔐 Security & Verification
+
+          ### Image Signatures
+          All images are signed with [Cosign](https://docs.sigstore.dev/cosign/overview/) using keyless signing:
+
+          \`\`\`bash
+          # Verify image signature
+          cosign verify \\
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \\
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \\
+            ghcr.io/${{ github.repository }}/devcontainer-[IMAGE]:${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ### Software Bill of Materials (SBOM)
+          Each image includes an attested SBOM in SPDX format:
+
+          \`\`\`bash
+          # Verify SBOM attestation
+          cosign verify-attestation \\
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \\
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \\
+            --type spdxjson \\
+            ghcr.io/${{ github.repository }}/devcontainer-[IMAGE]:${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ### Security Scanning
+          All images are scanned with [Trivy](https://github.com/aquasecurity/trivy) for vulnerabilities.
 
           ### Ansible DevContainer
           \`\`\`bash
