@@ -2,7 +2,7 @@
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
-# Install development dependencies
+# Install development dependencies and tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl=8.* \
     git=1:2.* \
@@ -26,3 +26,6 @@ RUN curl -L -o /usr/local/bin/hadolint https://github.com/hadolint/hadolint/rele
 RUN usermod -aG docker vscode || true
 
 USER vscode
+
+# Configure GPG for the vscode user in runtime
+RUN echo 'export GPG_TTY=$(tty)' >> /home/vscode/.zshrc
