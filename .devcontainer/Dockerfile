@@ -28,4 +28,4 @@ RUN usermod -aG docker vscode || true
 USER vscode
 
 # Configure GPG for the vscode user in runtime
-RUN echo 'export GPG_TTY=$(tty)' >> /home/vscode/.zshrc
+RUN echo "export GPG_TTY=$(tty)" >> /home/vscode/.zshrc
