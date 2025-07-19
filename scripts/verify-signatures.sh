@@ -11,7 +11,6 @@ DEFAULT_TAG="${DEFAULT_TAG:-latest}"
 CERTIFICATE_IDENTITY_REGEXP="${CERTIFICATE_IDENTITY_REGEXP:-^https://github.com/${REPOSITORY}}"
 CERTIFICATE_OIDC_ISSUER="${CERTIFICATE_OIDC_ISSUER:-https://token.actions.githubusercontent.com}"
 
-
 # Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -120,7 +119,6 @@ verify_signature() {
 
     log_info "🔍 Verificando firma para: $image"
 
-
     # Primero verificar que la imagen existe
     if ! image_exists "$image"; then
         log_error "❌ La imagen no existe o no es accesible: $image"
@@ -219,7 +217,6 @@ list_available_tags() {
             return 0
         fi
     fi
-
     log_error "No se pudieron obtener los tags para devcontainer-${image_name}"
     log_info "Puedes verificar manualmente en: https://github.com/${REPOSITORY}/pkgs/container/devcontainer-${image_name}"
     return 1
@@ -313,13 +310,11 @@ main() {
             show_help
             exit 1
         fi
-
         if [[ ! " ${IMAGES[*]} " =~ " $target_image_for_tags " ]]; then
             log_error "Imagen desconocida: $target_image_for_tags"
             log_info "Imágenes disponibles: ${IMAGES[*]}"
             exit 1
         fi
-
         list_available_tags "$target_image_for_tags"
         exit $?
     fi
@@ -382,7 +377,6 @@ main() {
             failed_images+=("$image_name")
             continue
         fi
-
 
         # Verificar firma
         if verify_signature "$full_image" "$verbose"; then
