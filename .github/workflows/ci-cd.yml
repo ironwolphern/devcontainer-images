@@ -206,7 +206,19 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,format=long
+            type=sha,prefix={{branch}}-,format=short
+            type=raw,value={{branch}}-{{sha}},enable=${{ github.ref_type == 'branch' }}
+
+      - name: 'Debug metadata'
+        if: steps.should_build.outputs.build == 'true'
+        run: |
+          echo "::group::Generated Tags and Labels"
+          echo "Tags:"
+          echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'
+          echo ""
+          echo "Labels:"
+          echo '${{ steps.meta.outputs.labels }}'
+          echo "::endgroup::"
 
       - name: 'Debug metadata'
         if: steps.should_build.outputs.build == 'true'
