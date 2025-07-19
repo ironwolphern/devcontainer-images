@@ -202,7 +202,19 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,format=long
+            type=sha,prefix={{branch}}-,format=short
+            type=raw,value={{branch}}-{{sha}},enable=${{ github.ref_type == 'branch' }}
+
+      - name: 'Debug metadata'
+        if: steps.should_build.outputs.build == 'true'
+        run: |
+          echo "::group::Generated Tags and Labels"
+          echo "Tags:"
+          echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'
+          echo ""
+          echo "Labels:"
+          echo '${{ steps.meta.outputs.labels }}'
+          echo "::endgroup::"
 
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
@@ -267,7 +279,9 @@ jobs:
       - name: 'Push image'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' || 
+           github.ref == 'refs/heads/develop' || 
+           github.event.inputs.push_images == 'true')
         uses: docker/build-push-action@v6
         id: push
         with:
@@ -280,10 +294,36 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
 
+      - name: 'Validate pushed images'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' || 
+           github.ref == 'refs/heads/develop' || 
+           github.event.inputs.push_images == 'true')
+        run: |
+          echo "🔍 Validando que las imágenes se han pusheado correctamente..."
+          
+          # Verificar cada tag
+          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'); do
+            if [[ -n "$tag" && "$tag" != " " ]]; then
+              echo "Verificando: $tag"
+              if docker manifest inspect "$tag" > /dev/null 2>&1; then
+                echo "✅ $tag existe"
+              else
+                echo "❌ $tag no encontrado"
+                exit 1
+              fi
+            fi
+          done
+          
+          echo "✅ Todas las imágenes verificadas exitosamente"
+
       - name: 'Sign image with Cosign'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' || 
+           github.ref == 'refs/heads/develop' || 
+           github.event.inputs.push_images == 'true')
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
@@ -312,7 +352,9 @@ jobs:
       - name: 'Generate and attest SBOM'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' || 
+           github.ref == 'refs/heads/develop' || 
+           github.event.inputs.push_images == 'true')
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
@@ -323,7 +365,9 @@ jobs:
             curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
           fi
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.sha }}"
+          # Usar el primer tag de la lista de tags generados
+          IMAGE_REF=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "📋 Generando SBOM para: $IMAGE_REF"
 
           # Generar SBOM
           syft "$IMAGE_REF" -o spdx-json=sbom-${{ matrix.image }}.spdx.json
@@ -337,13 +381,17 @@ jobs:
       - name: 'Verify image signature'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' || 
+           github.ref == 'refs/heads/develop' || 
+           github.event.inputs.push_images == 'true')
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
           echo "🔍 Verificando firmas de la imagen..."
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.sha }}"
+          # Usar el primer tag de la lista de tags generados
+          IMAGE_REF=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "🔍 Verificando imagen: $IMAGE_REF"
 
           # Verificar firma
           cosign verify \

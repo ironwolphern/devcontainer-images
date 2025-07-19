@@ -31,8 +31,19 @@ GO_BUILD_ARGS = --build-arg GO_VERSION=$(GO_VERSION) \
 # Default target
 .PHONY: help
 help: ## Show this help message
-	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "DevContainer Images - Makefile Help"
+	@echo ""
+	@echo "📦 BUILD TARGETS:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "(build|push|pull)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🧪 TEST TARGETS:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "(test|scan|verify)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🔧 TROUBLESHOOTING:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "(check|diagnose|troubleshoot|fix|debug|trigger)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🛠️  UTILITIES:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v -E "(build|push|pull|test|scan|verify|check|diagnose|troubleshoot|fix|debug|trigger)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: versions
 versions: ## Show current versions
@@ -228,3 +239,94 @@ install-cosign: ## Install Cosign (requires sudo)
 	@sudo chmod +x /usr/local/bin/cosign
 	@cosign version
 	@echo "✅ Cosign instalado exitosamente"
+
+# Troubleshooting targets
+.PHONY: check-images
+check-images: ## Check availability of all images in registry
+	@echo "🔍 Verificando disponibilidad de imágenes..."
+	@./scripts/verify-signatures.sh --check-available
+
+.PHONY: list-tags
+list-tags: ## List available tags for all images
+	@echo "📋 Listando tags disponibles..."
+	@for img in $(IMAGES); do \
+		echo "=== devcontainer-$$img ==="; \
+		./scripts/verify-signatures.sh --list-tags $$img || true; \
+		echo ""; \
+	done
+
+.PHONY: check-registry-access
+check-registry-access: ## Check access to container registry
+	@echo "🔐 Verificando acceso al registro..."
+	@if [ -z "$$GITHUB_TOKEN" ]; then \
+		echo "❌ GITHUB_TOKEN no está configurado"; \
+		exit 1; \
+	fi
+	@echo "$$GITHUB_TOKEN" | docker login ghcr.io -u $$GITHUB_USERNAME --password-stdin
+	@echo "✅ Acceso al registro verificado"
+
+.PHONY: trigger-build
+trigger-build: ## Trigger manual build via GitHub CLI (requires gh CLI)
+	@echo "🚀 Triggering manual build..."
+	@if ! command -v gh >/dev/null 2>&1; then \
+		echo "❌ GitHub CLI (gh) no está instalado"; \
+		exit 1; \
+	fi
+	@gh workflow run ci-cd.yml -f image=all -f push_images=true
+	@echo "✅ Build triggeado. Verifica el progreso con: gh run list"
+
+.PHONY: debug-workflow
+debug-workflow: ## Show recent workflow runs
+	@echo "📊 Workflows recientes:"
+	@if command -v gh >/dev/null 2>&1; then \
+		gh run list --limit 10; \
+	else \
+		echo "❌ GitHub CLI (gh) no está instalado"; \
+	fi
+
+.PHONY: quick-diagnose
+quick-diagnose: ## Quick diagnosis of the current state
+	@echo "🩺 Diagnóstico rápido del estado actual"
+	@echo ""
+	@echo "1. Verificando herramientas..."
+	@echo -n "   Docker: "; command -v docker >/dev/null && echo "✅" || echo "❌"
+	@echo -n "   Cosign: "; command -v cosign >/dev/null && echo "✅" || echo "❌"
+	@echo -n "   GitHub CLI: "; command -v gh >/dev/null && echo "✅" || echo "❌"
+	@echo ""
+	@echo "2. Verificando variables de entorno..."
+	@echo -n "   GITHUB_TOKEN: "; [ -n "$$GITHUB_TOKEN" ] && echo "✅" || echo "❌"
+	@echo -n "   GITHUB_USERNAME: "; [ -n "$$GITHUB_USERNAME" ] && echo "✅" || echo "❌"
+	@echo ""
+	@echo "3. Verificando disponibilidad de imágenes..."
+	@./scripts/verify-signatures.sh --check-available || true
+	@echo ""
+	@echo "4. Workflows recientes (si gh CLI está disponible):"
+	@if command -v gh >/dev/null 2>&1; then \
+		gh run list --limit 5 || true; \
+	else \
+		echo "   GitHub CLI no disponible"; \
+	fi
+
+.PHONY: fix-missing-images
+fix-missing-images: ## Attempt to fix missing images by triggering build
+	@echo "🔧 Intentando reparar imágenes faltantes..."
+	@echo "1. Verificando estado actual..."
+	@./scripts/verify-signatures.sh --check-available || echo "❌ Algunas imágenes no están disponibles"
+	@echo ""
+	@echo "2. Triggering build..."
+	@$(MAKE) trigger-build
+	@echo ""
+	@echo "3. Esperando build (esto puede tomar varios minutos)..."
+	@echo "   Puedes monitorear el progreso con: gh run list"
+	@echo "   O visitar: https://github.com/ironwolphern/devcontainer-images/actions"
+
+.PHONY: troubleshoot
+troubleshoot: quick-diagnose ## Alias for quick-diagnose
+
+.PHONY: health-check
+health-check: ## Quick health check of tools, environment, and images
+	@./scripts/health-check.sh
+
+.PHONY: health-check-quiet
+health-check-quiet: ## Health check with quiet output (exit code only)
+	@./scripts/health-check.sh --quiet
