@@ -34,7 +34,9 @@ jobs:
   verify-signatures:
     name: 'Verify Image Signatures'
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Timeout de 20 minutos para el job de verificación de firmas
     strategy:
+      max-parallel: 1  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
       fail-fast: false
@@ -163,6 +165,7 @@ jobs:
   summary:
     name: 'Verification Summary'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para el job de resumen de verificación
     needs: verify-signatures
     if: always()
 

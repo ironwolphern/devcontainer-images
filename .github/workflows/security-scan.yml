@@ -29,6 +29,7 @@ jobs:
   dockerfile-security:
     name: 'Dockerfile Security Scan'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para el job de seguridad de Dockerfile
     if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dockerfile' || github.event_name == 'schedule'
 
     steps:
@@ -53,6 +54,7 @@ jobs:
   secrets-scan:
     name: 'Secrets Scan'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para el job de escaneo de secretos
     if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'secrets' || github.event_name == 'schedule'
 
     steps:
@@ -72,8 +74,10 @@ jobs:
   vulnerability-scan:
     name: 'Vulnerability Scan'
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Timeout de 20 minutos para el job de escaneo de vulnerabilidades
     if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'vulnerability' || github.event_name == 'schedule'
     strategy:
+      max-parallel: 1  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
@@ -145,6 +149,7 @@ jobs:
   dependency-scan:
     name: 'Dependency Security Scan'
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Timeout de 20 minutos para el job de escaneo de dependencias
     if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'dependencies' || github.event_name == 'schedule'
 
     steps:
@@ -209,6 +214,7 @@ jobs:
   summary:
     name: 'Security Scan Summary'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para el job de resumen de seguridad
     needs: [dockerfile-security, secrets-scan, vulnerability-scan, dependency-scan, signature-verification]
     if: always()
 
@@ -287,6 +293,7 @@ jobs:
   signature-verification:
     name: 'Image Signature Verification'
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Timeout de 20 minutos para el job de verificación de firmas
     if: github.event.inputs.scan_type == 'all' || github.event_name == 'schedule'
 
     steps:
