@@ -61,8 +61,6 @@ jobs:
       - name: 'Install Cosign'
         if: steps.should_verify.outputs.verify == 'true'
         uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: 'v2.4.0'
 
       - name: 'Set image tag'
         if: steps.should_verify.outputs.verify == 'true'

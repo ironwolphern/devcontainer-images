@@ -48,6 +48,7 @@ jobs:
   detect-changes:
     name: 'Detect Changes'
     runs-on: ubuntu-latest
+    timeout-minutes: 5  # Timeout de 5 minutos para detección de cambios
     outputs:
       ansible: ${{ steps.changes.outputs.ansible }}
       python: ${{ steps.changes.outputs.python }}
@@ -116,6 +117,7 @@ jobs:
   lint-dockerfiles:
     name: 'Lint Dockerfiles'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para linting
     needs: detect-changes
     if: needs.detect-changes.outputs.any == 'true'
 
@@ -133,9 +135,11 @@ jobs:
   build-and-test:
     name: 'Build and Test'
     runs-on: ubuntu-latest
+    timeout-minutes: 25  # Timeout de 25 minutos para build y test (el más largo)
     needs: [detect-changes, lint-dockerfiles]
     if: needs.detect-changes.outputs.any == 'true'
     strategy:
+      max-parallel: 1  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
@@ -537,6 +541,7 @@ jobs:
   integration-tests:
     name: 'Integration Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para tests de integración
     needs: [detect-changes, build-and-test]
     if: needs.detect-changes.outputs.any == 'true'
 
@@ -573,6 +578,7 @@ jobs:
   notify:
     name: 'Notify Results'
     runs-on: ubuntu-latest
+    timeout-minutes: 5  # Timeout de 5 minutos para notificaciones
     needs: [detect-changes, build-and-test, integration-tests]
     if: always() && needs.detect-changes.outputs.any == 'true'
 
