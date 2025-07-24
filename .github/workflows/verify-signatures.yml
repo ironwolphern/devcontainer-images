@@ -82,13 +82,13 @@ jobs:
 
           echo "🔍 Verifying signature for: $IMAGE_REF"
 
-          # Verificar que la imagen existe
+          # Verify that the image exists
           if ! docker manifest inspect "$IMAGE_REF" > /dev/null 2>&1; then
             echo "⚠️ Image not found: $IMAGE_REF"
             exit 0
           fi
 
-          # Verificar firma
+          # Verify signature
           cosign verify \
             --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
@@ -109,7 +109,7 @@ jobs:
 
           echo "🔍 Verifying SBOM for: $IMAGE_REF"
 
-          # Verificar SBOM
+          # Verify SBOM
           cosign verify-attestation \
             --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
@@ -131,20 +131,20 @@ jobs:
 
           echo "📋 Downloading SBOM for analysis..."
 
-          # Descargar SBOM
+          # Download SBOM
           cosign download attestation \
             --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             "$IMAGE_REF" > sbom-${{ matrix.image }}.json
 
-          # Extraer el SBOM del attestation
+          # Extract the SBOM from the attestation
           jq -r '.payload' sbom-${{ matrix.image }}.json | base64 -d | jq -r '.predicate' > sbom-${{ matrix.image }}-decoded.json
 
-          # Analizar contenido del SBOM
+          # Analyze SBOM content
           PACKAGE_COUNT=$(jq '.packages | length' sbom-${{ matrix.image }}-decoded.json)
           echo "📦 Packages found in SBOM: $PACKAGE_COUNT"
 
-          # Buscar vulnerabilidades conocidas (ejemplo básico)
+          # Search for known vulnerabilities (basic example)
           echo "🔍 Analyzing critical packages..."
           jq -r '.packages[] | select(.name != null) | .name' sbom-${{ matrix.image }}-decoded.json | sort | uniq > packages-${{ matrix.image }}.txt
 
