@@ -43,7 +43,7 @@ check_env_var() {
 check_image() {
     local image="$1"
     local full_image="$REGISTRY/$REPOSITORY/devcontainer-$image:$TAG"
-    
+
     if docker manifest inspect "$full_image" >/dev/null 2>&1; then
         echo -e "✅ devcontainer-$image:$TAG"
         return 0
@@ -56,31 +56,31 @@ check_image() {
 # Main health check
 main() {
     local issues=0
-    
+
     echo "🩺 DevContainer Images Health Check"
     echo "=================================="
     echo ""
-    
+
     # Check tools
     echo "🔧 Tools:"
     check_tool "docker" || ((issues++))
     check_tool "cosign" || ((issues++))
     check_tool "gh" || ((issues++))
     echo ""
-    
+
     # Check environment
     echo "🌍 Environment:"
     check_env_var "GITHUB_TOKEN" || ((issues++))
     check_env_var "GITHUB_USERNAME" || ((issues++))
     echo ""
-    
+
     # Check images
     echo "🐳 Images ($REGISTRY/$REPOSITORY):"
     for image in "${IMAGES[@]}"; do
         check_image "$image" || ((issues++))
     done
     echo ""
-    
+
     # Summary
     if [ $issues -eq 0 ]; then
         echo -e "${GREEN}✅ All checks passed!${NC}"

@@ -1,42 +1,4 @@
 #!/bin/bash
-# DevContainer Images - Help function
-Scrishow_help() {
-    cat << EOF
-DevContainer Images - Verificador de Firmas
-
-USO:
-    $0 [OPCIONES] [IMAGEN] [TAG]
-
-OPCIONES:
-    -h, --help              Mostrar esta ayuda
-    -v, --verbose           Modo verbose
-    -a, --all               Verificar todas las imágenes
-    -s, --sbom              También verificar SBOM
-    --policy FILE           Usar archivo de política específico
-    --list-tags IMAGEN      Listar tags disponibles para una imagen
-    --check-available       Solo verificar disponibilidad de imágenes
-
-ARGUMENTOS:
-    IMAGEN                  Imagen a verificar (ansible, python, terraform, go)
-                           Si no se especifica, se verifican todas
-    TAG                     Tag de la imagen (default: latest)
-
-EJEMPLOS:
-    $0                      # Verificar todas las imágenes con tag 'latest'
-    $0 ansible              # Verificar imagen ansible con tag 'latest'
-    $0 python v1.0.0        # Verificar imagen python con tag 'v1.0.0'
-    $0 --sbom terraform     # Verificar firma y SBOM de terraform
-    $0 --list-tags python   # Listar tags disponibles para python
-    $0 --check-available    # Solo verificar que las imágenes están disponibles
-
-ENVIRONMENT VARIABLES:
-    REGISTRY                Registry URL (default: ghcr.io)
-    REPOSITORY              Repository name (default: ironwolphern/devcontainer-images)
-    CERTIFICATE_IDENTITY_REGEXP
-    CERTIFICATE_OIDC_ISSUER
-
-EOF
-
 # Este script verifica las firmas Cosign de las imágenes de DevContainer
 
 set -euo pipefail
@@ -84,23 +46,32 @@ USO:
     $0 [OPCIONES] [IMAGEN] [TAG]
 
 OPCIONES:
-    -h, --help          Mostrar esta ayuda
-    -v, --verbose       Modo verbose
-    -a, --all           Verificar todas las imágenes
-    -s, --sbom          También verificar SBOM
-    --policy FILE       Usar archivo de política específico
+    -h, --help              Mostrar esta ayuda
+    -v, --verbose           Modo verbose
+    -a, --all               Verificar todas las imágenes
+    -s, --sbom              También verificar SBOM
+    --policy FILE           Usar archivo de política específico
+    --list-tags IMAGEN      Listar tags disponibles para una imagen
+    --check-available       Solo verificar disponibilidad de imágenes
 
 ARGUMENTOS:
-    IMAGEN              Imagen a verificar (ansible, python, terraform, go)
-                       Si no se especifica, se verifican todas
-    TAG                 Tag de la imagen (default: latest)
+    IMAGEN                  Imagen a verificar (ansible, python, terraform, go)
+                           Si no se especifica, se verifican todas
+    TAG                     Tag de la imagen (default: latest)
 
 EJEMPLOS:
-    $0                          # Verificar todas las imágenes con tag 'latest'
-    $0 python                   # Verificar solo imagen python:latest
-    $0 terraform v1.0.0         # Verificar terraform:v1.0.0
-    $0 --all --sbom             # Verificar todas con SBOM
-    $0 --verbose ansible        # Verificar ansible en modo verbose
+    $0                      # Verificar todas las imágenes con tag 'latest'
+    $0 ansible              # Verificar imagen ansible con tag 'latest'
+    $0 python v1.0.0        # Verificar imagen python con tag 'v1.0.0'
+    $0 --sbom terraform     # Verificar firma y SBOM de terraform
+    $0 --list-tags python   # Listar tags disponibles para python
+    $0 --check-available    # Solo verificar que las imágenes están disponibles
+
+ENVIRONMENT VARIABLES:
+    REGISTRY                Registry URL (default: ghcr.io)
+    REPOSITORY              Repository name (default: ironwolphern/devcontainer-images)
+    CERTIFICATE_IDENTITY_REGEXP
+    CERTIFICATE_OIDC_ISSUER
 
 REQUISITOS:
     - cosign (v2.0+)
@@ -226,9 +197,9 @@ verify_sbom() {
 list_available_tags() {
     local image_name="$1"
     local image_url="${REGISTRY}/${REPOSITORY}/devcontainer-${image_name}"
-    
+
     log_info "📋 Listando tags disponibles para devcontainer-${image_name}..."
-    
+
     # Usar skopeo si está disponible, sino usar API REST
     if command -v skopeo >/dev/null 2>&1; then
         log_info "Usando skopeo para listar tags..."
@@ -238,17 +209,17 @@ list_available_tags() {
             log_warn "Error con skopeo, intentando con API REST..."
         fi
     fi
-    
+
     # Fallback a API REST
     log_info "Usando API REST para listar tags..."
     local api_url="https://ghcr.io/v2/${REPOSITORY}/devcontainer-${image_name}/tags/list"
-    
+
     if command -v curl >/dev/null 2>&1; then
         if curl -s "$api_url" | jq -r '.tags[]?' 2>/dev/null | sort -V; then
             return 0
         fi
     fi
-    
+
     log_error "No se pudieron obtener los tags para devcontainer-${image_name}"
     log_info "Puedes verificar manualmente en: https://github.com/${REPOSITORY}/pkgs/container/devcontainer-${image_name}"
     return 1
@@ -258,9 +229,9 @@ check_image_availability() {
     local image_name="$1"
     local tag="$2"
     local image_url="${REGISTRY}/${REPOSITORY}/devcontainer-${image_name}:${tag}"
-    
+
     log_info "🔍 Verificando disponibilidad de: devcontainer-${image_name}:${tag}"
-    
+
     if image_exists "$image_url"; then
         log_success "✅ Imagen disponible: devcontainer-${image_name}:${tag}"
         return 0
@@ -342,13 +313,13 @@ main() {
             show_help
             exit 1
         fi
-        
+
         if [[ ! " ${IMAGES[*]} " =~ " $target_image_for_tags " ]]; then
             log_error "Imagen desconocida: $target_image_for_tags"
             log_info "Imágenes disponibles: ${IMAGES[*]}"
             exit 1
         fi
-        
+
         list_available_tags "$target_image_for_tags"
         exit $?
     fi
@@ -378,9 +349,9 @@ main() {
                 ((available_count++))
             fi
         done
-        
+
         log_info "📊 Resultado: $available_count/${#images_to_verify[@]} imágenes disponibles"
-        
+
         if [[ $available_count -eq ${#images_to_verify[@]} ]]; then
             log_success "✅ Todas las imágenes están disponibles"
             exit 0
