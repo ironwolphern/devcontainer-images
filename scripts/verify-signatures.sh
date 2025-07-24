@@ -34,7 +34,7 @@ ENVIRONMENT VARIABLES:
     CERTIFICATE_IDENTITY_REGEXP
     CERTIFICATE_OIDC_ISSUER
 
-EOFe Firmas
+EOF
 
 # Este script verifica las firmas Cosign de las imágenes de DevContainer
 
