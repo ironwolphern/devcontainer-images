@@ -148,7 +148,7 @@ jobs:
           echo "🔍 Analyzing critical packages..."
           jq -r '.packages[] | select(.name != null) | .name' sbom-${{ matrix.image }}-decoded.json | sort | uniq > packages-${{ matrix.image }}.txt
 
-          echo "✅ SBOM analizado - $(wc -l < packages-${{ matrix.image }}.txt) paquetes únicos"
+          echo "✅ SBOM analyzed - $(wc -l < packages-${{ matrix.image }}.txt) unique packages"
 
       - name: 'Upload SBOM artifacts'
         if: steps.should_verify.outputs.verify == 'true'
