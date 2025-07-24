@@ -93,7 +93,7 @@ jobs:
             --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             "$IMAGE_REF" || {
-              echo "❌ Verificación de firma fallida para $IMAGE_REF"
+              echo "❌ Signature verification failed for $IMAGE_REF"
               echo "::error::Image signature verification failed for $IMAGE_REF"
               exit 1
             }
