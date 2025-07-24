@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # DevContainer Images - Scrishow_help() {
     cat << EOF
 DevContainer Images - Verificador de Firmas
@@ -36,6 +35,7 @@ ENVIRONMENT VARIABLES:
     CERTIFICATE_OIDC_ISSUER
 
 EOFe Firmas
+
 # Este script verifica las firmas Cosign de las imágenes de DevContainer
 
 set -euo pipefail
@@ -47,6 +47,7 @@ IMAGES=("ansible" "python" "terraform" "go")
 DEFAULT_TAG="${DEFAULT_TAG:-latest}"
 CERTIFICATE_IDENTITY_REGEXP="${CERTIFICATE_IDENTITY_REGEXP:-^https://github.com/${REPOSITORY}}"
 CERTIFICATE_OIDC_ISSUER="${CERTIFICATE_OIDC_ISSUER:-https://token.actions.githubusercontent.com}"
+
 
 # Colores para output
 RED='\033[0;31m'
@@ -146,6 +147,7 @@ verify_signature() {
     local verbose="${2:-false}"
 
     log_info "🔍 Verificando firma para: $image"
+
 
     # Primero verificar que la imagen existe
     if ! image_exists "$image"; then
@@ -411,7 +413,6 @@ main() {
 
         local full_image="$REGISTRY/$REPOSITORY/devcontainer-$image_name:$tag"
 
-        # Verificar firma
         # Verificar firma
         if verify_signature "$full_image" "$verbose"; then
             ((success_count++))
