@@ -129,7 +129,7 @@ jobs:
         run: |
           IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
-          echo "📋 Descargando SBOM para análisis..."
+          echo "📋 Downloading SBOM for analysis..."
 
           # Descargar SBOM
           cosign download attestation \
