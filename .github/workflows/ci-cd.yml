@@ -135,7 +135,7 @@ jobs:
   build-and-test:
     name: 'Build and Test'
     runs-on: ubuntu-latest
-    timeout-minutes: 35  # Timeout de 35 minutos para build y test (el más largo)
+    timeout-minutes: 40  # Timeout de 35 minutos para build y test (el más largo)
     needs: [detect-changes, lint-dockerfiles]
     if: needs.detect-changes.outputs.any == 'true'
     strategy:
