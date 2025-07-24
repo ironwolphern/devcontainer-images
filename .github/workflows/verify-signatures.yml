@@ -120,7 +120,7 @@ jobs:
               exit 1
             }
 
-          echo "✅ SBOM verificado exitosamente para ${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
+          echo "✅ SBOM verified successfully for ${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
       - name: 'Download and analyze SBOM'
         if: steps.should_verify.outputs.verify == 'true'
