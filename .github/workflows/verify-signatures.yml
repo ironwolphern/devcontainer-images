@@ -98,7 +98,7 @@ jobs:
               exit 1
             }
 
-          echo "✅ Firma verificada exitosamente para ${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
+          echo "✅ Signature verified successfully for ${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
       - name: 'Verify SBOM attestation'
         if: steps.should_verify.outputs.verify == 'true'
