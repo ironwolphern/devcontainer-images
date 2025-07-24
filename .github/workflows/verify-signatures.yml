@@ -144,7 +144,7 @@ jobs:
           PACKAGE_COUNT=$(jq '.packages | length' sbom-${{ matrix.image }}-decoded.json)
           echo "📦 Packages found in SBOM: $PACKAGE_COUNT"
 
-          # Buscar vulnerabilidades conocidas (ejemplo básico)
+          # Search for known vulnerabilities (basic example)
           echo "🔍 Analyzing critical packages..."
           jq -r '.packages[] | select(.name != null) | .name' sbom-${{ matrix.image }}-decoded.json | sort | uniq > packages-${{ matrix.image }}.txt
 
