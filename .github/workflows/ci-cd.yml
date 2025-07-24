@@ -218,6 +218,17 @@ jobs:
           echo '${{ steps.meta.outputs.labels }}'
           echo "::endgroup::"
 
+      - name: 'Debug metadata'
+        if: steps.should_build.outputs.build == 'true'
+        run: |
+          echo "::group::Generated Tags and Labels"
+          echo "Tags:"
+          echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'
+          echo ""
+          echo "Labels:"
+          echo '${{ steps.meta.outputs.labels }}'
+          echo "::endgroup::"
+
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
         uses: docker/build-push-action@v6
@@ -317,7 +328,6 @@ jobs:
               fi
             fi
           done
-
           echo "✅ Todas las imágenes verificadas exitosamente"
 
       - name: 'Sign image with Cosign'

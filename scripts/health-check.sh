@@ -43,7 +43,6 @@ check_env_var() {
 check_image() {
     local image="$1"
     local full_image="$REGISTRY/$REPOSITORY/devcontainer-$image:$TAG"
-
     if docker manifest inspect "$full_image" >/dev/null 2>&1; then
         echo -e "✅ devcontainer-$image:$TAG"
         return 0
@@ -80,7 +79,6 @@ main() {
         check_image "$image" || ((issues++))
     done
     echo ""
-
     # Summary
     if [ $issues -eq 0 ]; then
         echo -e "${GREEN}✅ All checks passed!${NC}"
