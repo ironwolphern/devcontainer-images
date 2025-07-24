@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40  # Timeout de 40 minutos para el job de release
     strategy:
-      max-parallel: 2  # Ejecutar imágenes de forma secuencial
+      max-parallel: 2  # Execute images in parallel (max 2 concurrent)
       matrix:
         image: [ansible, python, terraform, go]
         include:
