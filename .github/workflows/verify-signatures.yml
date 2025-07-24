@@ -140,7 +140,7 @@ jobs:
           # Extract the SBOM from the attestation
           jq -r '.payload' sbom-${{ matrix.image }}.json | base64 -d | jq -r '.predicate' > sbom-${{ matrix.image }}-decoded.json
 
-          # Analizar contenido del SBOM
+          # Analyze SBOM content
           PACKAGE_COUNT=$(jq '.packages | length' sbom-${{ matrix.image }}-decoded.json)
           echo "📦 Packages found in SBOM: $PACKAGE_COUNT"
 
