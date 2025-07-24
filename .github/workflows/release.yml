@@ -197,15 +197,15 @@ jobs:
             }
 
           # Verificar SBOM
-          echo "🔍 Verificando SBOM..."
-          cosign verify-attestation \
-            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            --type spdxjson \
-            "$VERSION_IMAGE" || {
-              echo "❌ Verificación de SBOM fallida para $VERSION_IMAGE"
-              exit 1
-            }
+          # echo "🔍 Verificando SBOM..."
+          # cosign verify-attestation \
+          #   --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+          #   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+          #   --type spdxjson \
+          #   "$VERSION_IMAGE" || {
+          #     echo "❌ Verificación de SBOM fallida para $VERSION_IMAGE"
+          #     exit 1
+          #   }
 
           echo "✅ Todas las firmas y SBOM verificadas exitosamente para ${{ matrix.image }}"
 

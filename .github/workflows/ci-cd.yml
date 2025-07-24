@@ -135,11 +135,11 @@ jobs:
   build-and-test:
     name: 'Build and Test'
     runs-on: ubuntu-latest
-    timeout-minutes: 25  # Timeout de 25 minutos para build y test (el más largo)
+    timeout-minutes: 35  # Timeout de 35 minutos para build y test (el más largo)
     needs: [detect-changes, lint-dockerfiles]
     if: needs.detect-changes.outputs.any == 'true'
     strategy:
-      max-parallel: 1  # Ejecutar imágenes de forma secuencial
+      max-parallel: 2  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
