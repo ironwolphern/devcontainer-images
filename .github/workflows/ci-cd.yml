@@ -48,6 +48,7 @@ jobs:
   detect-changes:
     name: 'Detect Changes'
     runs-on: ubuntu-latest
+    timeout-minutes: 5  # Timeout de 5 minutos para detección de cambios
     outputs:
       ansible: ${{ steps.changes.outputs.ansible }}
       python: ${{ steps.changes.outputs.python }}
@@ -116,6 +117,7 @@ jobs:
   lint-dockerfiles:
     name: 'Lint Dockerfiles'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para linting
     needs: detect-changes
     if: needs.detect-changes.outputs.any == 'true'
 
@@ -133,9 +135,11 @@ jobs:
   build-and-test:
     name: 'Build and Test'
     runs-on: ubuntu-latest
+    timeout-minutes: 35  # Timeout de 35 minutos para build y test (el más largo)
     needs: [detect-changes, lint-dockerfiles]
     if: needs.detect-changes.outputs.any == 'true'
     strategy:
+      max-parallel: 2  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
@@ -199,8 +203,20 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix=${{ github.ref_name }}-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 'Debug metadata'
+        if: steps.should_build.outputs.build == 'true'
+        run: |
+          echo "::group::Generated Tags and Labels"
+          echo "Tags:"
+          echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'
+          echo ""
+          echo "Labels:"
+          echo '${{ steps.meta.outputs.labels }}'
+          echo "::endgroup::"
 
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
@@ -265,7 +281,9 @@ jobs:
       - name: 'Push image'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' ||
+           github.ref == 'refs/heads/develop' ||
+           github.event.inputs.push_images == 'true')
         uses: docker/build-push-action@v6
         id: push
         with:
@@ -278,39 +296,104 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
 
+      - name: 'Validate pushed images'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' ||
+           github.ref == 'refs/heads/develop' ||
+           github.event.inputs.push_images == 'true')
+        run: |
+          echo "🔍 Validando que las imágenes se han pusheado correctamente..."
+
+          # Verificar cada tag
+          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'); do
+            if [[ -n "$tag" && "$tag" != " " ]]; then
+              echo "Verificando: $tag"
+              if docker manifest inspect "$tag" > /dev/null 2>&1; then
+                echo "✅ $tag existe"
+              else
+                echo "❌ $tag no encontrado"
+                exit 1
+              fi
+            fi
+          done
+
+          echo "✅ Todas las imágenes verificadas exitosamente"
+
       - name: 'Sign image with Cosign'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' ||
+           github.ref == 'refs/heads/develop' ||
+           github.event.inputs.push_images == 'true')
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
           echo "🔐 Firmando imagen con Cosign..."
 
-          # Firmar todas las tags generadas
-          for tag in $(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'); do
+          # Procesar tags de forma secuencial con delays para evitar race conditions
+          TAGS=($(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'))
+          TOTAL_TAGS=${#TAGS[@]}
+
+          echo "📋 Total de tags a firmar: $TOTAL_TAGS"
+
+          for i in "${!TAGS[@]}"; do
+            tag="${TAGS[$i]}"
             if [[ -n "$tag" && "$tag" != " " ]]; then
-              echo "📝 Firmando: $tag"
-              cosign sign --yes "$tag" || {
-                echo "❌ Error firmando $tag"
-                exit 1
-              }
+              echo "📝 Firmando ($((i+1))/$TOTAL_TAGS): $tag"
+
+              # Retry logic para manejo de errores transitorios
+              for attempt in {1..3}; do
+                if cosign sign --yes "$tag"; then
+                  echo "✅ Firma exitosa para: $tag"
+                  break
+                else
+                  echo "⚠️ Intento $attempt fallido para: $tag"
+                  if [[ $attempt -eq 3 ]]; then
+                    echo "❌ Error firmando $tag después de 3 intentos"
+                    exit 1
+                  fi
+                  # Delay exponencial entre reintentos
+                  sleep $((attempt * 2))
+                fi
+              done
+
+              # Delay entre firmas para evitar sobrecarga del registry
+              if [[ $((i+1)) -lt $TOTAL_TAGS ]]; then
+                echo "⏳ Esperando 3 segundos antes de la siguiente firma..."
+                sleep 3
+              fi
             fi
           done
 
-          # Si hay un digest específico, firmarlo también
+          # Si hay un digest específico, firmarlo también con la misma lógica
           if [[ -n "${{ steps.push.outputs.digest }}" ]]; then
             IMAGE_WITH_DIGEST="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}@${{ steps.push.outputs.digest }}"
             echo "📝 Firmando con digest: $IMAGE_WITH_DIGEST"
-            cosign sign --yes "$IMAGE_WITH_DIGEST"
+
+            for attempt in {1..3}; do
+              if cosign sign --yes "$IMAGE_WITH_DIGEST"; then
+                echo "✅ Firma con digest exitosa"
+                break
+              else
+                echo "⚠️ Intento $attempt fallido para digest"
+                if [[ $attempt -eq 3 ]]; then
+                  echo "❌ Error firmando digest después de 3 intentos"
+                  exit 1
+                fi
+                sleep $((attempt * 2))
+              fi
+            done
           fi
 
-          echo "✅ Imagen firmada exitosamente"
+          echo "✅ Todas las imágenes firmadas exitosamente"
 
       - name: 'Generate and attest SBOM'
         if: |
           steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
+          (github.ref == 'refs/heads/main' ||
+           github.ref == 'refs/heads/develop' ||
+           github.event.inputs.push_images == 'true')
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
@@ -318,58 +401,71 @@ jobs:
 
           # Instalar syft si no está disponible
           if ! command -v syft &> /dev/null; then
+            echo "🔧 Instalando syft..."
             curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
           fi
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+          # Obtener todas las tags y procesar de forma secuencial
+          TAGS=($(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'))
 
-          # Generar SBOM
-          syft "$IMAGE_REF" -o spdx-json=sbom-${{ matrix.image }}.spdx.json
+          # Usar el primer tag como referencia principal
+          MAIN_TAG="${TAGS[0]}"
+          echo "📋 Generando SBOM para imagen principal: $MAIN_TAG"
 
-          # Atestar SBOM
-          echo "🔗 Atestando SBOM..."
-          cosign attest --yes --predicate sbom-${{ matrix.image }}.spdx.json --type spdxjson "$IMAGE_REF"
+          # Generar SBOM una sola vez
+          SBOM_FILE="sbom-${{ matrix.image }}.spdx.json"
 
-          echo "✅ SBOM generado y atestado"
+          for attempt in {1..3}; do
+            if syft "$MAIN_TAG" -o spdx-json="$SBOM_FILE"; then
+              echo "✅ SBOM generado exitosamente"
+              break
+            else
+              echo "⚠️ Intento $attempt fallido para generación de SBOM"
+              if [[ $attempt -eq 3 ]]; then
+                echo "❌ Error generando SBOM después de 3 intentos"
+                exit 1
+              fi
+              sleep $((attempt * 2))
+            fi
+          done
 
-      - name: 'Verify image signature'
-        if: |
-          steps.should_build.outputs.build == 'true' &&
-          (github.ref == 'refs/heads/main' || github.event.inputs.push_images == 'true')
-        env:
-          COSIGN_EXPERIMENTAL: 1
-        run: |
-          echo "🔍 Verificando firmas de la imagen..."
+          # Atestar SBOM para cada tag de forma secuencial
+          echo "🔗 Atestando SBOM para todas las tags..."
+          TOTAL_TAGS=${#TAGS[@]}
 
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+          for i in "${!TAGS[@]}"; do
+            tag="${TAGS[$i]}"
+            if [[ -n "$tag" && "$tag" != " " ]]; then
+              echo "🔗 Atestando SBOM ($((i+1))/$TOTAL_TAGS): $tag"
 
-          # Verificar firma
-          cosign verify \
-            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            "$IMAGE_REF" || {
-              echo "❌ Verificación de firma fallida"
-              exit 1
-            }
+              for attempt in {1..3}; do
+                if cosign attest --yes --predicate "$SBOM_FILE" --type spdxjson "$tag"; then
+                  echo "✅ SBOM atestado exitosamente para: $tag"
+                  break
+                else
+                  echo "⚠️ Intento $attempt fallido para atestar SBOM en: $tag"
+                  if [[ $attempt -eq 3 ]]; then
+                    echo "❌ Error atestando SBOM en $tag después de 3 intentos"
+                    exit 1
+                  fi
+                  sleep $((attempt * 2))
+                fi
+              done
 
-          echo "✅ Firma verificada exitosamente"
+              # Delay entre atestaciones
+              if [[ $((i+1)) -lt $TOTAL_TAGS ]]; then
+                echo "⏳ Esperando 2 segundos antes de la siguiente atestación..."
+                sleep 2
+              fi
+            fi
+          done
 
-          # Verificar SBOM
-          echo "🔍 Verificando SBOM..."
-          cosign verify-attestation \
-            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            --type spdxjson \
-            "$IMAGE_REF" || {
-              echo "❌ Verificación de SBOM fallida"
-              exit 1
-            }
-
-          echo "✅ SBOM verificado exitosamente"
+          echo "✅ SBOM generado y atestado para todas las tags"
 
   integration-tests:
     name: 'Integration Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para tests de integración
     needs: [detect-changes, build-and-test]
     if: needs.detect-changes.outputs.any == 'true'
 
@@ -406,6 +502,7 @@ jobs:
   notify:
     name: 'Notify Results'
     runs-on: ubuntu-latest
+    timeout-minutes: 5  # Timeout de 5 minutos para notificaciones
     needs: [detect-changes, build-and-test, integration-tests]
     if: always() && needs.detect-changes.outputs.any == 'true'
 

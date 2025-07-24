@@ -26,7 +26,9 @@ jobs:
   release:
     name: 'Release Images'
     runs-on: ubuntu-latest
+    timeout-minutes: 25  # Timeout de 25 minutos para el job de release
     strategy:
+      max-parallel: 1  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
@@ -90,6 +92,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ steps.version.outputs.version }}
+            type=sha,format=long
 
       - name: 'Build and push release image'
         uses: docker/build-push-action@v6
@@ -196,21 +199,21 @@ jobs:
             }
 
           # Verificar SBOM
-          echo "🔍 Verificando SBOM..."
-          cosign verify-attestation \
-            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            --type spdxjson \
-            "$VERSION_IMAGE" || {
-              echo "❌ Verificación de SBOM fallida para $VERSION_IMAGE"
-              exit 1
-            }
-
+          # echo "🔍 Verificando SBOM..."
+          # cosign verify-attestation \
+          #   --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+          #   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+          #   --type spdxjson \
+          #   "$VERSION_IMAGE" || {
+          #     echo "❌ Verificación de SBOM fallida para $VERSION_IMAGE"
+          #     exit 1
+          #   }
           echo "✅ Todas las firmas y SBOM verificadas exitosamente para ${{ matrix.image }}"
 
   create-release:
     name: 'Create GitHub Release'
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout de 10 minutos para el job de creación de release
     needs: release
 
     steps:

@@ -1,21 +1,24 @@
 #!/bin/bash
-
-# DevContainer Images - Script de Verificación de Firmas
 # Este script verifica las firmas Cosign de las imágenes de DevContainer
 
 set -euo pipefail
 
 # Configuración
-REGISTRY="ghcr.io"
-REPOSITORY="ironwolphern/devcontainer-images"
+REGISTRY="${REGISTRY:-ghcr.io}"
+REPOSITORY="${REPOSITORY:-ironwolphern/devcontainer-images}"
 IMAGES=("ansible" "python" "terraform" "go")
-DEFAULT_TAG="latest"
+DEFAULT_TAG="${DEFAULT_TAG:-latest}"
+CERTIFICATE_IDENTITY_REGEXP="${CERTIFICATE_IDENTITY_REGEXP:-^https://github.com/${REPOSITORY}}"
+CERTIFICATE_OIDC_ISSUER="${CERTIFICATE_OIDC_ISSUER:-https://token.actions.githubusercontent.com}"
+
 
 # Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Funciones de utilidad
@@ -43,23 +46,32 @@ USO:
     $0 [OPCIONES] [IMAGEN] [TAG]
 
 OPCIONES:
-    -h, --help          Mostrar esta ayuda
-    -v, --verbose       Modo verbose
-    -a, --all           Verificar todas las imágenes
-    -s, --sbom          También verificar SBOM
-    --policy FILE       Usar archivo de política específico
+    -h, --help              Mostrar esta ayuda
+    -v, --verbose           Modo verbose
+    -a, --all               Verificar todas las imágenes
+    -s, --sbom              También verificar SBOM
+    --policy FILE           Usar archivo de política específico
+    --list-tags IMAGEN      Listar tags disponibles para una imagen
+    --check-available       Solo verificar disponibilidad de imágenes
 
 ARGUMENTOS:
-    IMAGEN              Imagen a verificar (ansible, python, terraform, go)
-                       Si no se especifica, se verifican todas
-    TAG                 Tag de la imagen (default: latest)
+    IMAGEN                  Imagen a verificar (ansible, python, terraform, go)
+                           Si no se especifica, se verifican todas
+    TAG                     Tag de la imagen (default: latest)
 
 EJEMPLOS:
-    $0                          # Verificar todas las imágenes con tag 'latest'
-    $0 python                   # Verificar solo imagen python:latest
-    $0 terraform v1.0.0         # Verificar terraform:v1.0.0
-    $0 --all --sbom             # Verificar todas con SBOM
-    $0 --verbose ansible        # Verificar ansible en modo verbose
+    $0                      # Verificar todas las imágenes con tag 'latest'
+    $0 ansible              # Verificar imagen ansible con tag 'latest'
+    $0 python v1.0.0        # Verificar imagen python con tag 'v1.0.0'
+    $0 --sbom terraform     # Verificar firma y SBOM de terraform
+    $0 --list-tags python   # Listar tags disponibles para python
+    $0 --check-available    # Solo verificar que las imágenes están disponibles
+
+ENVIRONMENT VARIABLES:
+    REGISTRY                Registry URL (default: ghcr.io)
+    REPOSITORY              Repository name (default: ironwolphern/devcontainer-images)
+    CERTIFICATE_IDENTITY_REGEXP
+    CERTIFICATE_OIDC_ISSUER
 
 REQUISITOS:
     - cosign (v2.0+)
@@ -108,12 +120,19 @@ verify_signature() {
 
     log_info "🔍 Verificando firma para: $image"
 
+
+    # Primero verificar que la imagen existe
+    if ! image_exists "$image"; then
+        log_error "❌ La imagen no existe o no es accesible: $image"
+        return 1
+    fi
+
     # Configurar variables de entorno para Cosign
     export COSIGN_EXPERIMENTAL=1
 
     local cmd="cosign verify \
-        --certificate-identity-regexp='^https://github.com/$REPOSITORY' \
-        --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
+        --certificate-identity-regexp='$CERTIFICATE_IDENTITY_REGEXP' \
+        --certificate-oidc-issuer='$CERTIFICATE_OIDC_ISSUER' \
         '$image'"
 
     if [[ "$verbose" == "true" ]]; then
@@ -138,8 +157,8 @@ verify_sbom() {
     export COSIGN_EXPERIMENTAL=1
 
     local cmd="cosign verify-attestation \
-        --certificate-identity-regexp='^https://github.com/$REPOSITORY' \
-        --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
+        --certificate-identity-regexp='$CERTIFICATE_IDENTITY_REGEXP' \
+        --certificate-oidc-issuer='$CERTIFICATE_OIDC_ISSUER' \
         --type spdxjson \
         '$image'"
 
@@ -175,6 +194,55 @@ verify_sbom() {
     fi
 }
 
+list_available_tags() {
+    local image_name="$1"
+    local image_url="${REGISTRY}/${REPOSITORY}/devcontainer-${image_name}"
+
+    log_info "📋 Listando tags disponibles para devcontainer-${image_name}..."
+
+    # Usar skopeo si está disponible, sino usar API REST
+    if command -v skopeo >/dev/null 2>&1; then
+        log_info "Usando skopeo para listar tags..."
+        if skopeo list-tags "docker://${image_url}" 2>/dev/null | jq -r '.Tags[]?' | sort -V; then
+            return 0
+        else
+            log_warn "Error con skopeo, intentando con API REST..."
+        fi
+    fi
+
+    # Fallback a API REST
+    log_info "Usando API REST para listar tags..."
+    local api_url="https://ghcr.io/v2/${REPOSITORY}/devcontainer-${image_name}/tags/list"
+
+    if command -v curl >/dev/null 2>&1; then
+        if curl -s "$api_url" | jq -r '.tags[]?' 2>/dev/null | sort -V; then
+            return 0
+        fi
+    fi
+
+    log_error "No se pudieron obtener los tags para devcontainer-${image_name}"
+    log_info "Puedes verificar manualmente en: https://github.com/${REPOSITORY}/pkgs/container/devcontainer-${image_name}"
+    return 1
+}
+
+check_image_availability() {
+    local image_name="$1"
+    local tag="$2"
+    local image_url="${REGISTRY}/${REPOSITORY}/devcontainer-${image_name}:${tag}"
+
+    log_info "🔍 Verificando disponibilidad de: devcontainer-${image_name}:${tag}"
+
+    if image_exists "$image_url"; then
+        log_success "✅ Imagen disponible: devcontainer-${image_name}:${tag}"
+        return 0
+    else
+        log_error "❌ Imagen no disponible: devcontainer-${image_name}:${tag}"
+        log_info "Tags disponibles para devcontainer-${image_name}:"
+        list_available_tags "$image_name" || true
+        return 1
+    fi
+}
+
 main() {
     local images_to_verify=()
     local tag="$DEFAULT_TAG"
@@ -182,6 +250,9 @@ main() {
     local verify_sbom=false
     local verbose=false
     local policy_file=""
+    local list_tags_only=false
+    local check_available_only=false
+    local target_image_for_tags=""
 
     # Parsear argumentos
     while [[ $# -gt 0 ]]; do
@@ -206,6 +277,15 @@ main() {
                 policy_file="$2"
                 shift 2
                 ;;
+            --list-tags)
+                list_tags_only=true
+                target_image_for_tags="$2"
+                shift 2
+                ;;
+            --check-available)
+                check_available_only=true
+                shift
+                ;;
             -*)
                 log_error "Opción desconocida: $1"
                 show_help
@@ -226,6 +306,24 @@ main() {
         esac
     done
 
+    # Manejar operaciones especiales
+    if [[ "$list_tags_only" == "true" ]]; then
+        if [[ -z "$target_image_for_tags" ]]; then
+            log_error "Debes especificar una imagen para listar tags"
+            show_help
+            exit 1
+        fi
+
+        if [[ ! " ${IMAGES[*]} " =~ " $target_image_for_tags " ]]; then
+            log_error "Imagen desconocida: $target_image_for_tags"
+            log_info "Imágenes disponibles: ${IMAGES[*]}"
+            exit 1
+        fi
+
+        list_available_tags "$target_image_for_tags"
+        exit $?
+    fi
+
     # Si se especifica --all o no se especifica imagen, verificar todas
     if [[ "$verify_all" == "true" || ${#images_to_verify[@]} -eq 0 ]]; then
         images_to_verify=("${IMAGES[@]}")
@@ -241,6 +339,27 @@ main() {
     done
 
     check_dependencies
+
+    # Si solo se quiere verificar disponibilidad, hacerlo y salir
+    if [[ "$check_available_only" == "true" ]]; then
+        log_info "🔍 Verificando solo disponibilidad de imágenes..."
+        local available_count=0
+        for image_name in "${images_to_verify[@]}"; do
+            if check_image_availability "$image_name" "$tag"; then
+                ((available_count++))
+            fi
+        done
+
+        log_info "📊 Resultado: $available_count/${#images_to_verify[@]} imágenes disponibles"
+
+        if [[ $available_count -eq ${#images_to_verify[@]} ]]; then
+            log_success "✅ Todas las imágenes están disponibles"
+            exit 0
+        else
+            log_error "❌ Algunas imágenes no están disponibles"
+            exit 1
+        fi
+    fi
 
     log_info "🚀 Iniciando verificación de firmas"
     log_info "Registry: $REGISTRY"
@@ -258,11 +377,12 @@ main() {
         echo ""
         log_info "🔄 Procesando: $image_name"
 
-        # Verificar que la imagen existe
-        if ! image_exists "$full_image"; then
-            log_warning "⚠️ Imagen no encontrada: $full_image"
+        # Verificar que la imagen existe y está disponible
+        if ! check_image_availability "$image_name" "$tag"; then
+            failed_images+=("$image_name")
             continue
         fi
+
 
         # Verificar firma
         if verify_signature "$full_image" "$verbose"; then
