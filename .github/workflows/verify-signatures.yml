@@ -2,7 +2,7 @@ name: 'Image Signature Verification'
 
 on:
   schedule:
-    # Verificar firmas diariamente a las 6:00 AM UTC
+    # Verify signatures daily at 6:00 AM UTC
     - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
