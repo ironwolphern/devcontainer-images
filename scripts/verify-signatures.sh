@@ -383,7 +383,6 @@ main() {
             continue
         fi
 
-        local full_image="$REGISTRY/$REPOSITORY/devcontainer-$image_name:$tag"
 
         # Verificar firma
         if verify_signature "$full_image" "$verbose"; then
