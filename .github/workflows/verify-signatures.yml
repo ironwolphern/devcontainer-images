@@ -84,7 +84,7 @@ jobs:
 
           # Verificar que la imagen existe
           if ! docker manifest inspect "$IMAGE_REF" > /dev/null 2>&1; then
-            echo "⚠️ Imagen no encontrada: $IMAGE_REF"
+            echo "⚠️ Image not found: $IMAGE_REF"
             exit 0
           fi
 
