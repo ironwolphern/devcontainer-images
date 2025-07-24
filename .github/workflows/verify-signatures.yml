@@ -80,7 +80,7 @@ jobs:
         run: |
           IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
-          echo "🔍 Verificando firma para: $IMAGE_REF"
+          echo "🔍 Verifying signature for: $IMAGE_REF"
 
           # Verificar que la imagen existe
           if ! docker manifest inspect "$IMAGE_REF" > /dev/null 2>&1; then
