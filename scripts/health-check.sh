@@ -70,7 +70,7 @@ main() {
 
     # Check environment
     echo "🌍 Environment:"
-    check_env_var "GITHUB_TOKEN" || ((issues++))
+    check_env_var "GITHUB_TOKEN" true || ((issues++))
     check_env_var "GITHUB_USERNAME" || ((issues++))
     echo ""
 
