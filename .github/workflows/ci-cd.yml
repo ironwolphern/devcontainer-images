@@ -206,7 +206,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-,format=short
 
       - name: 'Debug metadata'
         if: steps.should_build.outputs.build == 'true'
