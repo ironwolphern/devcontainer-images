@@ -26,9 +26,9 @@ jobs:
   release:
     name: 'Release Images'
     runs-on: ubuntu-latest
-    timeout-minutes: 25  # Timeout de 25 minutos para el job de release
+    timeout-minutes: 40  # Timeout de 40 minutos para el job de release
     strategy:
-      max-parallel: 1  # Ejecutar imágenes de forma secuencial
+      max-parallel: 2  # Ejecutar imágenes de forma secuencial
       matrix:
         image: [ansible, python, terraform, go]
         include:
