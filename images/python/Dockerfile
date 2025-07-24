@@ -4,7 +4,7 @@
 ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim AS builder
 
-# Install build dependencies and tools
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.* \
     gcc=4:12.* \
@@ -24,7 +24,7 @@ RUN pip install --user --no-cache-dir -r requirements.txt
 ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim AS production
 
-# Install runtime dependencies and tools
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git=1:2.* \
     curl=7.* \
