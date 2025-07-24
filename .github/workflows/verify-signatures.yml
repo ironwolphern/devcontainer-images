@@ -107,7 +107,7 @@ jobs:
         run: |
           IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
-          echo "🔍 Verificando SBOM para: $IMAGE_REF"
+          echo "🔍 Verifying SBOM for: $IMAGE_REF"
 
           # Verificar SBOM
           cosign verify-attestation \
