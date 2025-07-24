@@ -145,7 +145,7 @@ jobs:
           echo "📦 Packages found in SBOM: $PACKAGE_COUNT"
 
           # Buscar vulnerabilidades conocidas (ejemplo básico)
-          echo "🔍 Analizando paquetes críticos..."
+          echo "🔍 Analyzing critical packages..."
           jq -r '.packages[] | select(.name != null) | .name' sbom-${{ matrix.image }}-decoded.json | sort | uniq > packages-${{ matrix.image }}.txt
 
           echo "✅ SBOM analizado - $(wc -l < packages-${{ matrix.image }}.txt) paquetes únicos"
