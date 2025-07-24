@@ -137,7 +137,7 @@ jobs:
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             "$IMAGE_REF" > sbom-${{ matrix.image }}.json
 
-          # Extraer el SBOM del attestation
+          # Extract the SBOM from the attestation
           jq -r '.payload' sbom-${{ matrix.image }}.json | base64 -d | jq -r '.predicate' > sbom-${{ matrix.image }}-decoded.json
 
           # Analizar contenido del SBOM
