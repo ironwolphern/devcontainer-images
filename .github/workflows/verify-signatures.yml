@@ -115,7 +115,7 @@ jobs:
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             --type spdxjson \
             "$IMAGE_REF" || {
-              echo "❌ Verificación de SBOM fallida para $IMAGE_REF"
+              echo "❌ SBOM verification failed for $IMAGE_REF"
               echo "::error::SBOM verification failed for $IMAGE_REF"
               exit 1
             }
