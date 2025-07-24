@@ -1,5 +1,6 @@
 #!/bin/bash
-# DevContainer Images - Scrishow_help() {
+# DevContainer Images - Help function
+Scrishow_help() {
     cat << EOF
 DevContainer Images - Verificador de Firmas
 
