@@ -483,6 +483,43 @@ jobs:
 
           echo "✅ SBOM generado y atestado para todas las tags"
 
+      - name: 'Verify image signature'
+        if: |
+          steps.should_build.outputs.build == 'true' &&
+          (github.ref == 'refs/heads/main' ||
+           github.ref == 'refs/heads/develop' ||
+           github.event.inputs.push_images == 'true')
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          echo "🔍 Verificando firmas de la imagen..."
+
+          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ github.ref_name }}-${{ github.sha }}"
+
+          # Verificar firma
+          cosign verify \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "$IMAGE_REF" || {
+              echo "❌ Verificación de firma fallida"
+              exit 1
+            }
+
+          echo "✅ Firma verificada exitosamente"
+
+          # Verificar SBOM
+          echo "🔍 Verificando SBOM..."
+          cosign verify-attestation \
+            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            --type spdxjson --output-file sbom-attestation-${{ matrix.image }}.json \
+            "$IMAGE_REF" || {
+              echo "❌ Verificación de SBOM fallida"
+              exit 1
+            }
+
+          echo "✅ SBOM verificado exitosamente"
+
   integration-tests:
     name: 'Integration Tests'
     runs-on: ubuntu-latest
