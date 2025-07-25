@@ -15,6 +15,8 @@ TERRAGRUNT_VERSION ?= 0.83.2
 TFLINT_VERSION ?= 0.58.1
 CHECKOV_VERSION ?= 3.2.451
 TERRASCAN_VERSION ?= 0.2.3
+TERRAFORM_DOCS_VERSION ?= 0.20.0
+TFSEC_VERSION ?= 1.28.14
 COSIGN_VERSION ?= 2.5.3
 
 # Build arguments for each image
@@ -24,7 +26,10 @@ TERRAFORM_BUILD_ARGS = --build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
                        --build-arg TERRAFORM_VERSION=$(TERRAFORM_VERSION) \
                        --build-arg TERRAGRUNT_VERSION=$(TERRAGRUNT_VERSION) \
                        --build-arg TFLINT_VERSION=$(TFLINT_VERSION) \
-                       --build-arg CHECKOV_VERSION=$(CHECKOV_VERSION)
+                       --build-arg CHECKOV_VERSION=$(CHECKOV_VERSION) \
+                       --build-arg TERRASCAN_VERSION=$(TERRASCAN_VERSION) \
+                       --build-arg TERRAFORM_DOCS_VERSION=$(TERRAFORM_DOCS_VERSION) \
+                       --build-arg TFSEC_VERSION=$(TFSEC_VERSION)
 GO_BUILD_ARGS = --build-arg GO_VERSION=$(GO_VERSION) \
                 --build-arg ALPINE_VERSION=$(ALPINE_VERSION)
 
@@ -44,20 +49,18 @@ help: ## Show this help message
 	@echo ""
 	@echo "🛠️  UTILITIES:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v -E "(build|push|pull|test|scan|verify|check|diagnose|troubleshoot|fix|debug|trigger)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🔄 IMAGE MANAGEMENT:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "(clean|remove|prune|list|images|tags)" | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: versions
 versions: ## Show current versions
 	@echo "📦 Current Versions:"
-	@echo "  Python:     $(PYTHON_VERSION)"
-	@echo "  Ansible:    $(ANSIBLE_VERSION)"
-	@echo "  Go:         $(GO_VERSION)"
-	@echo "  Alpine:     $(ALPINE_VERSION)"
-	@echo "  Terraform:  $(TERRAFORM_VERSION)"
-	@echo "  Terragrunt: $(TERRAGRUNT_VERSION)"
-	@echo "  TFLint:     $(TFLINT_VERSION)"
-	@echo "  Checkov:    $(CHECKOV_VERSION)"
-	@echo "  Terrascan:  $(TERRASCAN_VERSION)"
-	@echo "  Cosign:     $(COSIGN_VERSION)"
+	@echo "  Python:         $(PYTHON_VERSION)"
+	@echo "  Ansible:        $(ANSIBLE_VERSION)"
+	@echo "  Go:             $(GO_VERSION)"
+	@echo "  Terraform:      $(TERRAFORM_VERSION)"
+	@echo "  Cosign:         $(COSIGN_VERSION)"
 
 # Build targets
 .PHONY: build-all
@@ -109,6 +112,9 @@ test-terraform: build-terraform ## Test Terraform image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terragrunt --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) tflint --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) checkov --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terrascan --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) tfsec --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terraform-docs --version
 
 .PHONY: test-go
 test-go: build-go ## Test Go image

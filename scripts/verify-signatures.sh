@@ -157,7 +157,7 @@ verify_sbom() {
     local cmd="cosign verify-attestation \
         --certificate-identity-regexp='$CERTIFICATE_IDENTITY_REGEXP' \
         --certificate-oidc-issuer='$CERTIFICATE_OIDC_ISSUER' \
-        --type spdxjson \
+        --type spdxjson --output-file /tmp/sbom_${image//[:\/]/_}.json \
         '$image'"
 
     if [[ "$verbose" == "true" ]]; then
@@ -171,11 +171,6 @@ verify_sbom() {
         if command -v jq >/dev/null 2>&1; then
             log_info "📊 Analizando SBOM..."
             local sbom_file="/tmp/sbom_${image//[:\/]/_}.json"
-
-            cosign download attestation \
-                --certificate-identity-regexp="^https://github.com/$REPOSITORY" \
-                --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-                "$image" > "$sbom_file" 2>/dev/null || true
 
             if [[ -f "$sbom_file" ]]; then
                 local package_count

@@ -20,6 +20,12 @@ Optimized Docker image for Terraform and Infrastructure as Code development, inc
 - Terrascan
 - pre-commit
 
+### Security
+- TFsec
+
+### Documentation
+- TerraformDocs
+
 ### Utilities
 - Git, SSH client, curl
 - Python 3 + pip
