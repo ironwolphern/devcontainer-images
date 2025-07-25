@@ -115,7 +115,7 @@ jobs:
           cosign verify-attestation \
             --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            --type spdxjson \
+            --type spdxjson --output-file sbom-attestation-${{ matrix.image }}.json \
             "$IMAGE_REF" || {
               echo "❌ SBOM verification failed for $IMAGE_REF"
               echo "::error::SBOM verification failed for $IMAGE_REF"
