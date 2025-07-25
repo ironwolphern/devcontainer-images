@@ -240,6 +240,17 @@ jobs:
           echo '${{ steps.meta.outputs.labels }}'
           echo "::endgroup::"
 
+      - name: 'Debug metadata'
+        if: steps.should_build.outputs.build == 'true'
+        run: |
+          echo "::group::Generated Tags and Labels"
+          echo "Tags:"
+          echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'
+          echo ""
+          echo "Labels:"
+          echo '${{ steps.meta.outputs.labels }}'
+          echo "::endgroup::"
+
       - name: 'Build and test image'
         if: steps.should_build.outputs.build == 'true'
         uses: docker/build-push-action@v6
@@ -496,15 +507,15 @@ jobs:
 
           # Usar los tags generados por metadata-action
           TAGS=($(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n'))
-          
+
           # Usar el primer tag como referencia principal para verificación
           MAIN_TAG="${TAGS[0]}"
-          
+
           if [[ -z "$MAIN_TAG" || "$MAIN_TAG" == " " ]]; then
             echo "❌ No se encontró un tag válido para verificar"
             exit 1
           fi
-          
+
           echo "🔍 Verificando firma para: $MAIN_TAG"
 
           # Verificar firma con retry logic
