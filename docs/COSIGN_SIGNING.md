@@ -77,13 +77,11 @@ Usamos el script incluido para verificaciones más fáciles:
 cosign verify-attestation \
   --certificate-identity-regexp="^https://github.com/ironwolphern/devcontainer-images" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-  --type spdxjson \
+  --type spdxjson --output-file sbom-attestation-python.json\
   ghcr.io/ironwolphern/devcontainer-images/devcontainer-python:latest
 
 # Descargar SBOM para análisis
 cosign download attestation \
-  --certificate-identity-regexp="^https://github.com/ironwolphern/devcontainer-images" \
-  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   ghcr.io/ironwolphern/devcontainer-images/devcontainer-python:latest
 ```
 
@@ -111,8 +109,6 @@ permissions:
 ```yaml
 - name: 'Install Cosign'
   uses: sigstore/cosign-installer@v3
-  with:
-    cosign-release: 'v2.4.0'
 
 - name: 'Sign image'
   env:

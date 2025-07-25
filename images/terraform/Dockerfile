@@ -16,6 +16,8 @@ WORKDIR /tmp
 ARG TERRAFORM_VERSION=1.12.2
 ARG TERRAGRUNT_VERSION=0.83.2
 ARG TFLINT_VERSION=0.58.1
+ARG TFSEC_VERSION=1.28.14
+ARG TERRAFORM_DOCS_VERSION=0.20.0
 
 # Download Terraform
 RUN curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
@@ -30,6 +32,15 @@ RUN curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v${T
 RUN curl -fsSL https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip -o tflint.zip \
     && unzip tflint.zip \
     && chmod +x tflint
+
+# Download TFsec
+RUN curl -fsSL https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64 -o tfsec \
+    && chmod +x tfsec
+
+# Download TerraformDocs
+RUN curl -fsSL https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz -o terraform-docs.tar.gz \
+    && tar -xzf terraform-docs.tar.gz \
+    && chmod +x terraform-docs
 
 # Production stage
 ARG ALPINE_VERSION=3.22
