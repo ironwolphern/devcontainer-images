@@ -124,23 +124,14 @@ jobs:
 
           echo "✅ SBOM verified successfully for ${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
 
-      - name: 'Download and analyze SBOM'
+      - name: 'Analyze SBOM'
         if: steps.should_verify.outputs.verify == 'true'
-        env:
-          COSIGN_EXPERIMENTAL: 1
         run: |
-          IMAGE_REF="${{ env.REGISTRY }}/${{ github.repository }}/devcontainer-${{ matrix.image }}:${{ steps.tag.outputs.tag }}"
+          echo "📋 Analyzing SBOM..."
 
-          echo "📋 Downloading SBOM for analysis..."
-
-          # Download SBOM
-          cosign download attestation \
-            --certificate-identity-regexp="^https://github.com/${{ github.repository }}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            "$IMAGE_REF" > sbom-${{ matrix.image }}.json
-
+          # Use the SBOM attestation file already created by verify-attestation
           # Extract the SBOM from the attestation
-          jq -r '.payload' sbom-${{ matrix.image }}.json | base64 -d | jq -r '.predicate' > sbom-${{ matrix.image }}-decoded.json
+          jq -r '.payload' sbom-attestation-${{ matrix.image }}.json | base64 -d | jq -r '.predicate' > sbom-${{ matrix.image }}-decoded.json
 
           # Analyze SBOM content
           PACKAGE_COUNT=$(jq '.packages | length' sbom-${{ matrix.image }}-decoded.json)
