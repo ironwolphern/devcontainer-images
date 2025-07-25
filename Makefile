@@ -28,8 +28,8 @@ TERRAFORM_BUILD_ARGS = --build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
                        --build-arg TFLINT_VERSION=$(TFLINT_VERSION) \
                        --build-arg CHECKOV_VERSION=$(CHECKOV_VERSION) \
                        --build-arg TERRASCAN_VERSION=$(TERRASCAN_VERSION) \
-					   --build-arg TERRAFORM_DOCS_VERSION=$(TERRAFORM_DOCS_VERSION) \
-					   --build-arg TFSEC_VERSION=$(TFSEC_VERSION)
+                       --build-arg TERRAFORM_DOCS_VERSION=$(TERRAFORM_DOCS_VERSION) \
+                       --build-arg TFSEC_VERSION=$(TFSEC_VERSION)
 GO_BUILD_ARGS = --build-arg GO_VERSION=$(GO_VERSION) \
                 --build-arg ALPINE_VERSION=$(ALPINE_VERSION)
 
