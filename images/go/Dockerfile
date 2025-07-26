@@ -3,12 +3,12 @@
 # Multi-stage build for Go development environment
 ARG GO_VERSION=1.24
 ARG ALPINE_VERSION=3.22
-ARG GH_CLI_VERSION=2.76.1
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 # Install build dependencies and tools
 RUN apk add --no-cache \
     git=2.49.1-r0 \
+    curl=8.14.1-r1 \
     ca-certificates=20250619-r0 \
     gcc=14.2.0-r6 \
     musl-dev=1.2.5-r10 \
@@ -25,6 +25,9 @@ RUN go install golang.org/x/tools/gopls@latest && \
     go install github.com/onsi/ginkgo/v2/ginkgo@latest && \
     go install gotest.tools/gotestsum@latest && \
     go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+# Download and verify GitHub CLI version
+ARG GH_CLI_VERSION=2.76.1
 
 # Download GitHub CLI
 RUN curl -fsSL https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz -o gh.tar.gz \
