@@ -26,7 +26,7 @@ jobs:
   release:
     name: 'Release Images'
     runs-on: ubuntu-latest
-    timeout-minutes: 40  # Timeout de 40 minutos para el job de release
+    timeout-minutes: 60  # Timeout de 60 minutos para el job de release
     strategy:
       max-parallel: 2  # Execute images in parallel (max 2 concurrent)
       matrix:
