@@ -18,6 +18,7 @@ ARG TERRAGRUNT_VERSION=0.83.2
 ARG TFLINT_VERSION=0.58.1
 ARG TFSEC_VERSION=1.28.14
 ARG TERRAFORM_DOCS_VERSION=0.20.0
+ARG GH_CLI_VERSION=2.76.1
 
 # Download Terraform
 RUN curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
@@ -42,6 +43,12 @@ RUN curl -fsSL https://github.com/terraform-docs/terraform-docs/releases/downloa
     && tar -xzf terraform-docs.tar.gz \
     && chmod +x terraform-docs
 
+# Download GitHub CLI
+RUN curl -fsSL https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz -o gh.tar.gz \
+    && tar -xzf gh.tar.gz \
+    && chmod +x gh_${GH_CLI_VERSION}_linux_amd64/bin/gh \
+    && mv gh_${GH_CLI_VERSION}_linux_amd64/bin/gh /tmp
+
 # Production stage
 ARG ALPINE_VERSION=3.22
 FROM alpine:${ALPINE_VERSION} AS production
@@ -56,7 +63,13 @@ RUN apk add --no-cache \
     python3=3.12.11-r0 \
     py3-pip=25.1.1-r0 \
     make=4.4.1-r3 \
+    docker=28.3.0-r0 \
+    docker-cli=28.3.0-r0 \
+    openrc=0.62.6-r0 \
     && ln -sf python3 /usr/bin/python
+
+# Add docker to boot
+RUN rc-update add docker boot
 
 # Create non-root user
 RUN addgroup -S terraform && adduser -S terraform -G terraform -u 1001
@@ -65,6 +78,9 @@ RUN addgroup -S terraform && adduser -S terraform -G terraform -u 1001
 COPY --from=downloader /tmp/terraform /usr/local/bin/terraform
 COPY --from=downloader /tmp/terragrunt /usr/local/bin/terragrunt
 COPY --from=downloader /tmp/tflint /usr/local/bin/tflint
+COPY --from=downloader /tmp/tfsec /usr/local/bin/tfsec
+COPY --from=downloader /tmp/terraform-docs /usr/local/bin/terraform-docs
+COPY --from=downloader /tmp/gh /usr/local/bin/gh
 
 # Set environment variables
 ENV TF_IN_AUTOMATION=true
