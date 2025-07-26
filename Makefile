@@ -17,6 +17,7 @@ CHECKOV_VERSION ?= 3.2.451
 TERRASCAN_VERSION ?= 0.2.3
 TERRAFORM_DOCS_VERSION ?= 0.20.0
 TFSEC_VERSION ?= 1.28.14
+GH_CLI_VERSION ?= 2.76.1
 COSIGN_VERSION ?= 2.5.3
 
 # Build arguments for each image
@@ -29,9 +30,11 @@ TERRAFORM_BUILD_ARGS = --build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
                        --build-arg CHECKOV_VERSION=$(CHECKOV_VERSION) \
                        --build-arg TERRASCAN_VERSION=$(TERRASCAN_VERSION) \
                        --build-arg TERRAFORM_DOCS_VERSION=$(TERRAFORM_DOCS_VERSION) \
-                       --build-arg TFSEC_VERSION=$(TFSEC_VERSION)
+                       --build-arg TFSEC_VERSION=$(TFSEC_VERSION) \
+                       --build-arg GH_CLI_VERSION=$(GH_CLI_VERSION)
 GO_BUILD_ARGS = --build-arg GO_VERSION=$(GO_VERSION) \
-                --build-arg ALPINE_VERSION=$(ALPINE_VERSION)
+                --build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+                --build-arg GH_CLI_VERSION=$(GH_CLI_VERSION)
 
 # Default target
 .PHONY: help
@@ -60,6 +63,7 @@ versions: ## Show current versions
 	@echo "  Ansible:        $(ANSIBLE_VERSION)"
 	@echo "  Go:             $(GO_VERSION)"
 	@echo "  Terraform:      $(TERRAFORM_VERSION)"
+	@echo "  GitHub CLI:     $(GH_CLI_VERSION)"
 	@echo "  Cosign:         $(COSIGN_VERSION)"
 
 # Build targets
@@ -115,6 +119,7 @@ test-terraform: build-terraform ## Test Terraform image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terrascan --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) tfsec --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) terraform-docs --version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-terraform:$(TAG) gh --version
 
 .PHONY: test-go
 test-go: build-go ## Test Go image
@@ -122,6 +127,7 @@ test-go: build-go ## Test Go image
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) go version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) golangci-lint --version
 	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gosec -version
+	export DOCKER_HOST=unix:///var/run/docker.sock && docker run --rm $(REGISTRY)/devcontainer-go:$(TAG) gh --version
 
 # Push targets
 .PHONY: push-all
