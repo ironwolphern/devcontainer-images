@@ -163,7 +163,7 @@ jobs:
           output: 'trivy-results-${{ matrix.image }}-${{ steps.version.outputs.version }}.sarif'
 
       - name: 'Upload Trivy scan results'
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results-${{ matrix.image }}-${{ steps.version.outputs.version }}.sarif'
 
