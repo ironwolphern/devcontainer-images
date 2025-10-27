@@ -113,7 +113,7 @@ jobs:
           EOF
 
       - name: 'Upload updates info'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: updates-info
           path: updates.json
