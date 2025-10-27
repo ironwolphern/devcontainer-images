@@ -129,7 +129,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: 'Download updates info'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: updates-info
 
