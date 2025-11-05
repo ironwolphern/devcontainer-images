@@ -203,7 +203,7 @@ jobs:
           rm -rf temp-go-scan
 
       - name: 'Upload dependency scan results'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: dependency-scan-results
@@ -393,7 +393,7 @@ jobs:
 
       - name: 'Upload verification results'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: signature-verification-results
           path: |

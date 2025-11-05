@@ -145,7 +145,7 @@ jobs:
 
       - name: 'Upload SBOM artifacts'
         if: steps.should_verify.outputs.verify == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sbom-${{ matrix.image }}-${{ steps.tag.outputs.tag }}
           path: |
