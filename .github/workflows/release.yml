@@ -93,7 +93,7 @@ jobs:
             type=sha,format=long
 
       - name: 'Build and push release image'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         id: build
         with:
           context: ./images/${{ matrix.image }}
