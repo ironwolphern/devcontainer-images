@@ -1,7 +1,7 @@
 # Core development tools
 pip>=24.0.0
 setuptools>=70.0.0
-wheel>=0.44.0
+wheel>=0.48.0
 
 # Testing frameworks
 pytest>=8.0.0
