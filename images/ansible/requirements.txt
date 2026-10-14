@@ -1,7 +1,7 @@
 # Ansible and testing dependencies
 ansible>=9.0.0
 ansible-core>=2.21.4
-ansible-lint>=24.0.0
+ansible-lint>=26.9.0
 ansible-dev-tools>=26.9.0
 molecule>=24.0.0
 molecule-plugins>=26.9.28
